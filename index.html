@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Le Fler – Digitální klientská karta V3</title>
+<title>Le Fler – Digitální klientská karta V4</title>
 <style>
 :root{--b:#4e342e;--bg:#f7f5f3;--line:#d8d2ce;--muted:#6d625d;--warn:#9a2d21;--ok:#295c38}
 *{box-sizing:border-box} body{font-family:Arial,Helvetica,sans-serif;margin:0;background:var(--bg);color:#1f1b19}
@@ -46,25 +46,46 @@ textarea{min-height:78px;resize:vertical}.help{color:var(--muted);font-size:12px
 .planMarketing{margin-top:20px;padding-top:16px;border-top:1px dashed #aaa}
 .planFooter{margin-top:20px;text-align:center;color:var(--muted);font-size:12px}
 @media(max-width:800px){.planColumns{grid-template-columns:1fr}}
+
+.a4Landscape{display:flex;gap:8mm;width:100%;min-height:180mm}
+.printHalf{width:50%;padding:2mm}
+.printHalf h2{font-size:11pt;margin:0 0 2mm}.printHalf h3{font-size:7pt;margin:2mm 0 1mm;border-bottom:1px solid #bbb}
+.printHalf p,.pcRow{font-size:6.5pt;line-height:1.25;margin:1mm 0}
+.compactVisit{display:flex;border:1px solid #ccc;margin-bottom:1.3mm;min-height:25mm;font-size:5.5pt;line-height:1.18;break-inside:avoid}
+.cvNum{width:7mm;background:#f1efed;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:8pt}
+.cvBody{padding:1.2mm;flex:1}.cvHead{font-size:6.2pt;margin-bottom:.7mm}
+.compactVisit.blank{min-height:24mm}.historyNotesPrint{font-size:6pt;padding:2mm;background:#f5f3f1;margin-top:2mm}
+
 @media print{
  .clientPlanHero h2{font-size:24px}
  .planColumns{grid-template-columns:1fr 1fr}
  .planRoutine,.planNext,.planGoalBox,.planNote{break-inside:avoid}
 }
 
+
+.a4Landscape{display:flex;gap:8mm;width:100%;min-height:180mm}
+.printHalf{width:50%;padding:2mm}
+.printHalf h2{font-size:11pt;margin:0 0 2mm}.printHalf h3{font-size:7pt;margin:2mm 0 1mm;border-bottom:1px solid #bbb}
+.printHalf p,.pcRow{font-size:6.5pt;line-height:1.25;margin:1mm 0}
+.compactVisit{display:flex;border:1px solid #ccc;margin-bottom:1.3mm;min-height:25mm;font-size:5.5pt;line-height:1.18;break-inside:avoid}
+.cvNum{width:7mm;background:#f1efed;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:8pt}
+.cvBody{padding:1.2mm;flex:1}.cvHead{font-size:6.2pt;margin-bottom:.7mm}
+.compactVisit.blank{min-height:24mm}.historyNotesPrint{font-size:6pt;padding:2mm;background:#f5f3f1;margin-top:2mm}
+
 @media print{
  body{background:#fff}header,.no-print,.screen:not(#printScreen){display:none!important}
  #printScreen{display:block!important}.print-only{display:block}.card{border:0;padding:0;margin:0 0 14px}
- @page{size:A4;margin:12mm}h2{border-bottom:1px solid #555;padding-bottom:5px}
+ @page{size:A4 landscape;margin:7mm}h2{border-bottom:1px solid #555;padding-bottom:5px}
  .print-break{break-before:page}.internal{display:none!important}
 }
 </style>
 </head>
 <body>
 <header>
-<h1>Le Fler – Digitální klientská karta V3</h1>
+<h1>Le Fler – Digitální klientská karta V4</h1>
 <div class="toolbar">
 <button onclick="go('clients')">Klientky</button>
+<button id="bOverview" onclick="openOverview()" disabled>Přehled</button>
 <button onclick="newClient()">+ Nová klientka</button>
 <button id="bConsult" onclick="openConsult()" disabled>Konzultace</button>
 <button id="bVisit" onclick="newVisit()" disabled>+ Nová návštěva</button>
@@ -86,6 +107,33 @@ textarea{min-height:78px;resize:vertical}.help{color:var(--muted);font-size:12px
  </div>
 </section>
 
+
+<section id="overview" class="screen">
+ <div class="card">
+  <h2>Přehled klientky</h2>
+  <div id="overviewWho" class="notice"></div>
+  <div class="grid3">
+   <div class="listItem"><span class="muted">Poslední návštěva</span><br><strong id="ovLast">—</strong></div>
+   <div class="listItem"><span class="muted">Příští návštěva</span><br><strong id="ovNext">—</strong></div>
+   <div class="listItem"><span class="muted">Počet návštěv</span><br><strong id="ovCount">0</strong></div>
+  </div>
+  <h3>Věrnostní program</h3>
+  <div class="grid3">
+   <div class="listItem"><span class="muted">Razítka</span><br><strong id="ovStamps">0 / 10</strong></div>
+   <div class="listItem"><span class="muted">Do odměny zbývá</span><br><strong id="ovRemain">10</strong></div>
+   <div class="listItem"><span class="muted">Stav odměny</span><br><strong id="ovReward">—</strong></div>
+  </div>
+  <div class="actions no-print">
+   <button onclick="adjustStamp(-1)">− razítko</button>
+   <button onclick="adjustStamp(1)">+ razítko</button>
+   <button onclick="claimReward()">Označit odměnu jako vyzvednutou</button>
+  </div>
+  <div id="rewardHistory"></div>
+  <h3>Aktuální cíle / důležité informace</h3>
+  <div id="overviewGoals" class="listItem"></div>
+ </div>
+</section>
+
 <section id="clientFormScreen" class="screen">
  <div class="card">
  <h2 id="clientTitle">Nová klientka</h2>
@@ -98,6 +146,8 @@ textarea{min-height:78px;resize:vertical}.help{color:var(--muted);font-size:12px
    <div><label>E-mail</label><input id="cEmail" type="email"></div>
    <div><label>Hlavní terapeutka</label><select id="cTherapist"></select></div>
    <div><label>Jak se o nás dozvěděla?</label><select id="cSource"><option></option><option>Google</option><option>Instagram</option><option>Facebook</option><option>Doporučení klientky</option><option>Prošla kolem</option><option>Jiné</option></select></div>
+   <div><label>Počet razítek</label><input id="cStamps" type="number" min="0" value="0"></div>
+   <div><label>Odměna po kolika razítkách</label><input id="cStampGoal" type="number" min="1" value="10"></div>
   </div>
   <div class="actions"><button type="button" onclick="go('clients')">Zrušit</button><button class="primary">Uložit klientku</button></div>
  </form>
@@ -208,7 +258,8 @@ textarea{min-height:78px;resize:vertical}.help{color:var(--muted);font-size:12px
      <div><label>Doporučený další krok / ošetření</label><select id="vNextTreatment"></select></div>
      <div><label>Doporučený interval</label><select id="vNextInterval"><option></option><option>2 týdny</option><option>3 týdny</option><option>4 týdny</option><option>5 týdnů</option><option>6 týdnů</option><option>8 týdnů</option><option>Individuálně</option></select></div>
     </div>
-    <label class="chip"><input type="checkbox" id="vBooked"> Klientka si objednala další termín na místě</label>
+    <label class="chip"><input type="checkbox" id="vBooked" onchange="toggleNextDate()"> Klientka si objednala další termín na místě</label>
+    <div id="nextDateWrap" class="hidden" style="margin-top:10px"><label>Konkrétní datum příští návštěvy</label><input type="date" id="vNextDate"></div>
    </div>
 
    <div class="visitStep hidden" data-step="6">
@@ -261,7 +312,7 @@ textarea{min-height:78px;resize:vertical}.help{color:var(--muted);font-size:12px
 
 <script>
 const MASTER={"skincheck": {"pigment": {"name": "Pigmentace", "intro": "Trápí mě tmavé skvrny nebo nerovnoměrný tón pleti.", "steps": [["Když se podíváte do zrcadla, čeho si na tónu pleti všimnete jako první?", ["Plošné hnědé skvrny", "Drobné skvrny po pupíncích", "Nerovnoměrný tón celé pleti", "Jedna konkrétní tmavá skvrna / znaménko"]], ["Kdy máte pocit, že jsou skvrny nejvýraznější nebo se zhoršují?", ["Hlavně po létě a slunci", "Po akné nebo podráždění", "Postupně bez jasné příčiny", "Objevila se náhle"]], ["Jak se o pleť staráte ve vztahu ke slunci?", ["SPF 50 používám každý den", "SPF používám jen v létě", "SPF používám nepravidelně", "SPF nepoužívám"]], ["Jak se vaše pleť kromě pigmentace právě teď cítí?", ["Pleť je klidná a odolná", "Je citlivá a často červená", "Je vysušená / narušená", "Současně mám aktivní akné"]], ["Když se na pigmentový projev podíváte pozorně, jak se chová?", ["Jde o běžné plošné skvrny", "Skvrna mění velikost nebo barvu", "Krvácí / svědí / mění tvar", "Nejsem si jistá, co to je"]]]}, "acne": {"name": "Akné / nedokonalosti", "intro": "Trápí mě pupínky, ucpané póry nebo zánětlivé projevy.", "steps": [["Co vám vaše pleť dává najevo jako první?", ["Černé tečky a ucpané póry", "Drobné bílé pupínky", "Červené zanícené pupínky", "Hluboké bolestivé boule"]], ["Kde si těchto projevů všímáte nejvíc?", ["Jen T-zóna", "Tváře / brada", "Celý obličej", "Obličej + záda / dekolt"]], ["Jak se vaše pleť chová v čase?", ["Je to stále podobné", "Zhoršuje se ve vlnách", "Zhoršilo se po nové kosmetice", "Výrazně se zhoršilo v posledních týdnech"]], ["Co své pleti doma obvykle dopřáváte – nebo naopak nedopřáváte?", ["Jemně čistím + hydratuji", "Hodně ji vysušuji", "Používám několik kyselin najednou", "Používám hutné krémy / oleje", "Prakticky nic"]], ["Jak moc vás projevy omezují a co po nich na pleti zůstává?", ["Není bolestivá a nevznikají jizvy", "Občas zůstane červená skvrna", "Vznikají jizvy", "Akné je hluboké a bolestivé"]]]}, "sensitive": {"name": "Citlivost / zarudnutí", "intro": "Pleť je citlivá, zarudlá, pálí nebo štípe.", "steps": [["Kdyby vám pleť mohla říct, co jí vadí, co by řekla nejčastěji?", ["Pleť štípe", "Pálí", "Červená", "Loupe se", "Kombinace několika problémů"]], ["Kdy se vaše pleť nejčastěji ozve?", ["Nový kosmetický produkt", "Kyseliny / peeling", "Retinoid", "Slunce", "Teplo / chlad", "Nevím"]], ["Jak dlouho vám pleť dává tyto signály?", ["Několik dní", "Několik týdnů", "Dlouhodobě", "Neustále se stav vrací"]], ["Jak s citlivou pletí doma zacházíte?", ["Používám jednoduchou jemnou péči", "Používám hodně aktivních sér", "Exfoliuji několikrát týdně", "Pleť často odmašťuji", "Střídám hodně produktů"]], ["A když se na pleť podíváte právě teď, co vidíte?", ["Jen mírné přechodné zarudnutí", "Výrazné trvalé zarudnutí", "Viditelné cévky", "Zanícené červené projevy"]]]}, "dry": {"name": "Suchost / dehydratace", "intro": "Pleť mě pne, je suchá, dehydratovaná nebo bez jasu.", "steps": [["Jak se vaše pleť během dne nejčastěji cítí?", ["Je suchá celý život", "Začala pnout až nedávno", "Mastí se, ale současně pne", "Je suchá jen na některých místech"]], ["Jak vám pleť dává najevo, že jí něco chybí?", ["Šupinky", "Pnutí", "Jemné linky", "Matný vzhled bez jasu", "Hrubší povrch"]], ["Co vám pleť říká bezprostředně po umytí?", ["Je příjemná", "Trochu pne", "Hodně pne", "Musím okamžitě použít krém"]], ["Co své pleti doma nejčastěji dopřáváte?", ["Hydratační sérum + krém", "Pouze lehké sérum", "Pouze mastný krém", "Hodně kyselin / retinoidů", "Nic pravidelného"]], ["Co byste své pleti chtěla dopřát nejvíc?", ["Hlavně hydrataci", "Zjemnění a komfort", "Rozjasnění", "Vyhlazení jemných linek", "Celkovou regeneraci"]]]}, "antiage": {"name": "Anti-age / prevence stárnutí", "intro": "Nemám jeden konkrétní problém. Chci, aby moje pleť vypadala dobře co nejdéle.", "steps": [["Co byste své pleti chtěla dopřát nejvíc?", ["Chci hlavně udržet pleť v dobrém stavu", "Začínám pozorovat jemné linky", "Pleť ztrácí pevnost", "Vypadá unaveně a bez jasu", "Chci hlavně relaxovat a zároveň pleti něco dopřát"]], ["Jak se vaše pleť právě teď cítí?", ["Je v zásadě bez problémů", "Je spíš sušší", "Je dehydratovaná", "Je citlivější", "Je normální / smíšená"]], ["S jakým pocitem a efektem byste chtěla ze salonu odcházet?", ["Pravidelnou dlouhodobou péči", "Hydrataci a rozjasnění", "Vypnutí a liftingový efekt", "Uvolnění a relaxaci", "Kombinaci všeho"]], ["Jaký vztah máte ke své domácí rutině?", ["Mám pravidelnou rutinu a používám SPF", "Používám základní čištění a krém", "Používám séra a aktivní látky", "Péči střídám podle nálady", "Skoro žádnou rutinu nemám"]], ["Kdyby si vaše pleť mohla z ošetření vybrat jednu věc, co by to bylo?", ["Aby pleť dlouhodobě dobře fungovala", "Aby vypadala svěžeji", "Aby působila pevněji a vypnutěji", "Abych si hlavně odpočinula", "Chci zároveň poradit s domácí péčí"]]]}}, "goals": [{"id": "pigmentace", "name": "Pigmentace / sjednocení tónu", "topics": ["pigment"]}, {"id": "akne", "name": "Akné / nedokonalosti / ucpané póry", "topics": ["acne"]}, {"id": "citlivost", "name": "Citlivost / zarudnutí / zklidnění", "topics": ["sensitive"]}, {"id": "dehydratace", "name": "Suchost / dehydratace / hydratace", "topics": ["dry"]}, {"id": "antiage", "name": "Anti-age / prevence", "topics": ["antiage"]}, {"id": "lifting", "name": "Pevnost / liftingový efekt", "topics": ["antiage", "dry"]}, {"id": "rozjasneni", "name": "Rozjasnění / jas", "topics": ["pigment", "dry", "antiage"]}, {"id": "relaxace", "name": "Relaxace", "topics": ["antiage"]}, {"id": "regenerace", "name": "Regenerace", "topics": ["dry", "antiage"]}, {"id": "rutina", "name": "Nastavení domácí rutiny", "topics": ["antiage", "dry", "acne", "sensitive", "pigment"]}], "treatments": [{"name": "Osobní konzultace", "kind": "hlavní výsledek", "topics": ["pigment", "acne", "sensitive"], "note": "Při varovných znacích / nejasném nálezu."}, {"name": "ProBright", "kind": "hlavní výsledek", "topics": ["pigment"], "note": "Cílená péče pro pigmentaci a sjednocení tónu."}, {"name": "ProCalm", "kind": "hlavní výsledek", "topics": ["pigment", "sensitive"], "note": "Zklidnění a podpora kožní bariéry."}, {"name": "Ošetření Expert", "kind": "hlavní výsledek", "topics": ["pigment", "acne", "sensitive", "dry"], "note": "Individuální postup pro komplikovanější / reaktivní stav."}, {"name": "ProSkin", "kind": "hlavní výsledek", "topics": ["acne", "dry", "antiage"], "note": "Pravidelná kosmetická péče, hydratace, čištění, výživa."}, {"name": "Liftingová masáž", "kind": "hlavní výsledek", "topics": ["dry", "antiage"], "note": "Relaxace, komfort, pevnost a liftingový efekt."}, {"name": "Hloubkové ošetření", "kind": "další krok", "topics": ["pigment"], "note": "V11 zmiňuje jako možnost výraznější korekce."}, {"name": "SQT Revitalizing", "kind": "alternativa / další krok", "topics": ["pigment"], "note": "Až po osobním posouzení tolerance."}, {"name": "SQT Resurfacing", "kind": "alternativa / další krok", "topics": ["acne"], "note": "Až ve stabilní fázi a po posouzení kosmetičkou."}, {"name": "SQT Nourishing", "kind": "alternativa / další krok", "topics": ["dry"], "note": "Intenzivnější regenerace po osobním posouzení."}, {"name": "SQT Anti-Aging", "kind": "alternativa / další krok", "topics": ["antiage"], "note": "Intenzivnější anti-age krok až po diagnostice."}], "products": [{"name": "Stabilizing Repair Cream", "topics": ["pigment", "acne", "sensitive", "dry"], "use": "domácí péče"}, {"name": "PowerBright Dark Spot Serum", "topics": ["pigment"], "use": "domácí péče"}, {"name": "PowerBright Moisturizer SPF50", "topics": ["pigment"], "use": "domácí péče"}, {"name": "AGE Bright Clearing Serum", "topics": ["acne"], "use": "domácí péče"}, {"name": "Active Moist", "topics": ["acne"], "use": "domácí péče"}, {"name": "Clearing Defense SPF30", "topics": ["acne"], "use": "domácí péče"}, {"name": "Calm Water Gel", "topics": ["sensitive", "dry"], "use": "domácí péče"}, {"name": "UltraCalming Cleanser", "topics": ["sensitive"], "use": "domácí péče"}, {"name": "Circular Hydration Serum", "topics": ["dry", "antiage"], "use": "domácí péče"}, {"name": "Intensive Moisture Balance", "topics": ["dry"], "use": "domácí péče"}, {"name": "Dynamic Skin Recovery SPF50", "topics": ["dry", "antiage"], "use": "domácí péče"}, {"name": "Phyto-Nature Firming Serum", "topics": ["antiage"], "use": "domácí péče"}, {"name": "BioLumin-C Serum", "topics": ["antiage"], "use": "domácí péče"}], "actives": [{"name": "Ceramidy", "topics": ["pigment", "acne", "sensitive", "dry"]}, {"name": "Panthenol", "topics": ["pigment", "acne", "sensitive", "dry"]}, {"name": "Niacinamid", "topics": ["pigment", "acne"]}, {"name": "Vitamin C", "topics": ["pigment", "antiage"]}, {"name": "Kyselina azelaová", "topics": ["pigment", "acne"]}, {"name": "Kyselina tranexamová", "topics": ["pigment"]}, {"name": "Kyselina salicylová", "topics": ["acne"]}, {"name": "Centella asiatica", "topics": ["sensitive"]}, {"name": "Skvalan", "topics": ["sensitive", "dry"]}, {"name": "Beta-glukan", "topics": ["sensitive", "dry"]}, {"name": "Glycerin", "topics": ["dry"]}, {"name": "Kyselina hyaluronová", "topics": ["dry"]}, {"name": "Cholesterol", "topics": ["dry"]}, {"name": "Mastné kyseliny", "topics": ["dry"]}, {"name": "Humektanty", "topics": ["dry"]}, {"name": "Antioxidanty", "topics": ["antiage"]}, {"name": "SPF / fotoprotekce", "topics": ["pigment", "acne", "sensitive", "antiage"]}], "techniques": [{"name": "Biostimulační laser", "type": "přístroj / podpora", "topics": ["acne", "dry"]}, {"name": "Studená plazma Dr. Platon", "type": "přístroj / podpora", "topics": ["acne"]}, {"name": "Čištění", "type": "technika", "topics": ["acne", "antiage"]}, {"name": "Hydratační maska", "type": "technika", "topics": ["dry"]}, {"name": "Maska", "type": "technika", "topics": ["acne", "antiage"]}, {"name": "Výživa", "type": "technika", "topics": ["acne", "dry", "antiage"]}, {"name": "Jemná exfoliace dle tolerance", "type": "technika", "topics": ["pigment", "antiage"]}, {"name": "Liftingová masáž obličeje", "type": "technika", "topics": ["antiage", "dry"]}, {"name": "Bariérová / zklidňující péče", "type": "technika", "topics": ["sensitive", "dry"]}], "allergies": ["Pyl", "Plísně", "Potraviny", "Léky", "Kosmetické složky", "Jiné"], "implants": ["Žádné", "Kardiostimulátor", "Kovový implantát", "Piercing v ošetřované oblasti", "Jiné"], "reactions": [{"name": "Dobrá tolerance", "severity": "OK"}, {"name": "Bez viditelné reakce", "severity": "OK"}, {"name": "Mírné přechodné začervenání", "severity": "sledovat"}, {"name": "Výrazné začervenání", "severity": "pozor"}, {"name": "Pálení", "severity": "pozor"}, {"name": "Štípání", "severity": "pozor"}, {"name": "Pnutí", "severity": "sledovat"}, {"name": "Citlivost / reaktivita", "severity": "sledovat"}, {"name": "Klientka bez diskomfortu", "severity": "OK"}], "therapists": ["Maky", "Markéta", "Jana", "Kristýna", "Týna", "Pavla", "Vlasta", "Tereza"], "treatmentMap": {"ProBright": {"techniques": ["Jemná exfoliace dle tolerance"], "products": ["PowerBright Dark Spot Serum", "PowerBright Moisturizer SPF50"], "actives": ["Vitamin C", "Niacinamid", "Kyselina azelaová", "Kyselina tranexamová", "SPF / fotoprotekce"]}, "ProCalm": {"techniques": ["Bariérová / zklidňující péče"], "products": ["Stabilizing Repair Cream", "Calm Water Gel", "UltraCalming Cleanser"], "actives": ["Ceramidy", "Panthenol", "Centella asiatica", "Skvalan", "Beta-glukan", "SPF / fotoprotekce"]}, "Ošetření Expert": {"techniques": ["Biostimulační laser", "Studená plazma Dr. Platon", "Bariérová / zklidňující péče"], "products": ["Stabilizing Repair Cream", "Circular Hydration Serum"], "actives": ["Ceramidy", "Panthenol", "Niacinamid", "Kyselina azelaová"]}, "ProSkin": {"techniques": ["Čištění", "Maska", "Hydratační maska", "Výživa", "Jemná exfoliace dle tolerance"], "products": ["AGE Bright Clearing Serum", "Active Moist", "Circular Hydration Serum", "Calm Water Gel", "Intensive Moisture Balance", "BioLumin-C Serum", "Dynamic Skin Recovery SPF50"], "actives": ["Kyselina salicylová", "Niacinamid", "Kyselina azelaová", "Glycerin", "Kyselina hyaluronová", "Antioxidanty"]}, "Liftingová masáž": {"techniques": ["Liftingová masáž obličeje"], "products": ["Circular Hydration Serum", "Phyto-Nature Firming Serum", "Dynamic Skin Recovery SPF50"], "actives": ["Kyselina hyaluronová", "Antioxidanty", "SPF / fotoprotekce"]}}};
-const STORE='lefler_client_card_v3_test';
+const STORE='lefler_client_card_v4_test';
 const DEMO_DB={
   clients:[
     {
@@ -271,7 +322,7 @@ const DEMO_DB={
       phone:"+420 777 111 222",
       email:"jana.novakova@example.cz",
       therapist:"Maky",
-      source:"Instagram",
+      source:"Instagram",stamps:7,stampGoal:10,rewardHistory:[],
       consultation:{
         skinTopic:"dry",
         goals:["Suchost / dehydratace / hydratace","Citlivost / zarudnutí / zklidnění","Anti-age / prevence"],
@@ -347,7 +398,7 @@ const DEMO_DB={
           homeNote:"Pokračovat jemně, bez přidávání dalších aktivních produktů.",
           nextTreatment:"ProSkin",
           nextInterval:"4 týdny",
-          booked:true,
+          booked:true,nextDate:"2026-10-05",
           samples:["Circular Hydration Serum"],
           internal:"Klientka chce dlouhodobě jednoduchou rutinu, ne moc produktů.",
           important:false,
@@ -508,7 +559,7 @@ function cur(){return DB.clients.find(c=>c.id===currentId)}
 function makeId(){return (window.crypto&&typeof crypto.randomUUID==='function')?crypto.randomUUID():('id-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2))}
 function msg(t){$('status').textContent=t;$('status').classList.remove('hidden');setTimeout(()=>$('status').classList.add('hidden'),2200)}
 function go(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$(id).classList.add('active')}
-function enableButtons(v){['bConsult','bVisit','bHistory','bPrint','bPlan'].forEach(x=>$(x).disabled=!v)}
+function enableButtons(v){['bOverview','bConsult','bVisit','bHistory','bPrint','bPlan'].forEach(x=>$(x).disabled=!v)}
 function makeOptions(el, arr, blank=true){
  el.innerHTML=(blank?'<option value=""></option>':'')+arr.map(x=>`<option>${esc(typeof x==='string'?x:x.name)}</option>`).join('')
 }
@@ -536,12 +587,12 @@ function setup(){
 }
 function newClient(){currentId=null;enableButtons(false);$('clientForm').reset();$('clientId').value='';$('clientTitle').textContent='Nová klientka';go('clientFormScreen')}
 function editClient(id){
- currentId=id;enableButtons(true);let c=cur();$('clientId').value=c.id;$('cName').value=c.name||'';$('cBirth').value=c.birth||'';$('cPhone').value=c.phone||'';$('cEmail').value=c.email||'';$('cTherapist').value=c.therapist||'';$('cSource').value=c.source||'';$('clientTitle').textContent='Upravit klientku';go('clientFormScreen')
+ currentId=id;enableButtons(true);let c=cur();$('clientId').value=c.id;$('cName').value=c.name||'';$('cBirth').value=c.birth||'';$('cPhone').value=c.phone||'';$('cEmail').value=c.email||'';$('cTherapist').value=c.therapist||'';$('cSource').value=c.source||'';$('cStamps').value=c.stamps||0;$('cStampGoal').value=c.stampGoal||10;$('clientTitle').textContent='Upravit klientku';go('clientFormScreen')
 }
 function saveClient(e){
  e.preventDefault();let id=$('clientId').value||makeId();let c=DB.clients.find(x=>x.id===id);
  if(!c){c={id,consultation:{},visits:[]};DB.clients.push(c)}
- Object.assign(c,{name:$('cName').value.trim(),birth:$('cBirth').value,phone:$('cPhone').value.trim(),email:$('cEmail').value.trim(),therapist:$('cTherapist').value,source:$('cSource').value});
+ Object.assign(c,{name:$('cName').value.trim(),birth:$('cBirth').value,phone:$('cPhone').value.trim(),email:$('cEmail').value.trim(),therapist:$('cTherapist').value,source:$('cSource').value,stamps:parseInt($('cStamps').value||0),stampGoal:parseInt($('cStampGoal').value||10),rewardHistory:c.rewardHistory||[]});
  currentId=id;saveDB();enableButtons(true);renderClients();msg('Klientka uložena.');openConsult()
 }
 function renderClients(){
@@ -550,7 +601,7 @@ function renderClients(){
  if(!arr.length){box.innerHTML='<p class="muted">Zatím žádná klientka.</p>';return}
  arr.forEach(c=>box.insertAdjacentHTML('beforeend',`<div class="listItem"><strong>${esc(c.name)}</strong><br><span class="muted">${esc(c.phone||'')} ${esc(c.email||'')}</span><div class="no-print" style="margin-top:7px"><button onclick="selectClient('${c.id}')">Otevřít</button> <button onclick="editClient('${c.id}')">Upravit údaje</button></div></div>`))
 }
-function selectClient(id){currentId=id;enableButtons(true);openHistory()}
+function selectClient(id){currentId=id;enableButtons(true);openOverview()}
 function setChecks(cls, vals){document.querySelectorAll('.'+cls).forEach(x=>x.checked=(vals||[]).includes(x.value))}
 function openConsult(){
  let c=cur();if(!c)return;$('consultWho').textContent='Klientka: '+c.name;let q=c.consultation||{};
@@ -586,7 +637,7 @@ function newVisit(){
  if(c.consultation?.herpes==='aktivni'){alert('STOP – v konzultační kartě je označen aktivní opar. Ošetření neprovádět.');openConsult();return}
  $('visitForm').reset();tempPhotos={};document.querySelectorAll('.visitStep input[type=checkbox]').forEach(x=>x.checked=false);
  ['beforeFrontImg','afterFrontImg','beforeDetailImg','afterDetailImg'].forEach(x=>{$(x).src='';$(x).classList.add('hidden')});
- $('vDate').value=new Date().toISOString().slice(0,10);$('vTherapist').value=c.therapist||'';$('visitWho').textContent='Klientka: '+c.name;
+ $('vDate').value=new Date().toISOString().slice(0,10);$('vNextDate').value='';$('nextDateWrap').classList.add('hidden');$('vTherapist').value=c.therapist||'';$('visitWho').textContent='Klientka: '+c.name;
  setChecks('vgoal',c.consultation?.goals||[]);visitStep=0;renderVisitStep();go('visit')
 }
 function treatmentChanged(){
@@ -609,7 +660,7 @@ function saveVisit(){
   goals:ids('.vgoal'),diagnosis:$('vDiagnosis').value,techniques:ids('.vtech'),techniqueNote:$('vTechniqueNote').value,
   products:ids('.vprod'),productNote:$('vProductNote').value,actives:ids('.vactive'),reactions:ids('.vreact'),reactionNote:$('vReactionNote').value,
   homeMorning:selectedHome('hmorn'),homeEvening:selectedHome('heve'),homeWeekly:selectedHome('hweek'),homeNote:$('vHomeNote').value,
-  nextTreatment:$('vNextTreatment').value,nextInterval:$('vNextInterval').value,booked:$('vBooked').checked,samples:ids('.vsample'),
+  nextTreatment:$('vNextTreatment').value,nextInterval:$('vNextInterval').value,booked:$('vBooked').checked,nextDate:$('vNextDate').value,samples:ids('.vsample'),
   internal:$('vInternal').value,important:$('vImportant').checked,photos:tempPhotos,created:new Date().toISOString()
  });
  saveDB();msg('Návštěva uložena.');openHistory()
@@ -622,15 +673,66 @@ function openHistory(){
   box.insertAdjacentHTML('beforeend',`<div class="listItem"><strong>${esc(v.date)} – ${esc(v.treatment||'Bez názvu')}</strong> <span class="muted">(${esc(v.therapist||'')})</span>
   <div class="tags">${(v.goals||[]).map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>
   ${(v.internal||'')?`<div class="internal ${v.important?'important':''}"><strong>${v.important?'⚠ DŮLEŽITÉ – ':''}Interní poznámka:</strong> ${nl(v.internal)}</div>`:''}
-  <div class="no-print" style="margin:8px 0"><button onclick="openClientPlan('${v.id}')">Plán pro klientku z této návštěvy</button></div>
+  <div class="no-print" style="margin:8px 0"><button onclick="openClientPlan('${v.id}')">Plán pro klientku z této návštěvy</button> <button onclick="addHistoryNote('${v.id}')">+ Dodatečná poznámka</button></div>
+  ${renderHistoryNotes(v)}
   <details><summary>Celý záznam</summary>
   <p><b>Diagnostika:</b> ${nl(v.diagnosis||'—')}</p><p><b>Techniky:</b> ${esc((v.techniques||[]).join(', ')||'—')}</p>
   <p><b>Produkty:</b> ${esc((v.products||[]).join(', ')||'—')}</p><p><b>Aktivní látky:</b> ${esc((v.actives||[]).join(', ')||'—')}</p>
   <p><b>Reakce:</b> ${esc((v.reactions||[]).join(', ')||'—')} ${nl(v.reactionNote||'')}</p>
   <p><b>Domácí péče:</b><br>Ráno: ${esc((v.homeMorning||[]).join(', ')||'—')}<br>Večer: ${esc((v.homeEvening||[]).join(', ')||'—')}<br>1–2× týdně: ${esc((v.homeWeekly||[]).join(', ')||'—')}</p>
-  <p><b>Další krok:</b> ${esc(v.nextTreatment||'—')} / ${esc(v.nextInterval||'—')} — ${v.booked?'objednána na místě':'bez rezervace na místě'}</p>
+  <p><b>Další krok:</b> ${esc(v.nextTreatment||'—')} / ${esc(v.nextInterval||'—')} — ${v.booked?('objednána na '+esc(v.nextDate||'datum neuvedeno')):'bez rezervace na místě'}</p>
   <p><b>Vzorky:</b> ${esc((v.samples||[]).join(', ')||'—')}</p></details></div>`)
  });go('history')
+}
+
+
+function toggleNextDate(){
+ $('nextDateWrap').classList.toggle('hidden',!$('vBooked').checked);
+ if(!$('vBooked').checked)$('vNextDate').value='';
+}
+function openOverview(){
+ let c=cur();if(!c)return;
+ $('overviewWho').innerHTML=`<strong>${esc(c.name)}</strong> — ${esc(c.phone||'')} ${esc(c.email||'')}`;
+ let vis=[...(c.visits||[])].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+ let last=vis[0];
+ $('ovLast').textContent=last?`${last.date} – ${last.treatment||''}`:'—';
+ let future=vis.filter(v=>v.booked&&v.nextDate).sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+ $('ovNext').textContent=future?.nextDate||'—';
+ $('ovCount').textContent=(c.visits||[]).length;
+ let stamps=Number(c.stamps||0), goal=Number(c.stampGoal||10);
+ $('ovStamps').textContent=`${stamps} / ${goal}`;
+ let remain=Math.max(0,goal-stamps);
+ $('ovRemain').textContent=remain;
+ $('ovReward').textContent=stamps>=goal?'ODMĚNA K VYZVEDNUTÍ':'sbírá razítka';
+ let q=c.consultation||{};
+ $('overviewGoals').innerHTML=`<b>Cíle:</b> ${esc((q.goals||[]).join(', ')||'—')}<br><b>Citlivost:</b> ${esc(q.sensitive||'—')} ${nl(q.sensitiveNote||'')}<br><b>Alergie:</b> ${esc((q.allergies||[]).join(', ')||'—')} ${nl(q.allergyNote||'')}`;
+ let rh=c.rewardHistory||[];
+ $('rewardHistory').innerHTML=rh.length?'<h3>Historie odměn</h3>'+rh.slice().reverse().map(r=>`<div class="listItem">${esc(r.date)} – ${esc(r.note)}</div>`).join(''):'';
+ go('overview');
+}
+function adjustStamp(delta){
+ let c=cur();if(!c)return;c.stamps=Math.max(0,Number(c.stamps||0)+delta);saveDB();openOverview();
+}
+function claimReward(){
+ let c=cur();if(!c)return;let goal=Number(c.stampGoal||10);
+ if(Number(c.stamps||0)<goal){alert('Klientka zatím nemá nárok na odměnu.');return}
+ c.stamps=Math.max(0,Number(c.stamps||0)-goal);
+ c.rewardHistory=c.rewardHistory||[];
+ c.rewardHistory.push({date:new Date().toLocaleString('cs-CZ'),note:'Věrnostní odměna vyzvednuta'});
+ saveDB();openOverview();
+}
+function renderHistoryNotes(v){
+ let arr=v.addedNotes||[];
+ if(!arr.length)return'';
+ return `<div style="margin-top:8px"><b>Dodatečné poznámky:</b>${arr.map(n=>`<div class="notice" style="margin:5px 0"><span class="muted">${esc(n.at)}</span><br>${nl(n.text)}</div>`).join('')}</div>`;
+}
+function addHistoryNote(visitId){
+ let c=cur(),v=(c.visits||[]).find(x=>x.id===visitId);if(!v)return;
+ let t=prompt('Doplňte poznámku k této návštěvě. Původní záznam se nezmění:');
+ if(!t||!t.trim())return;
+ v.addedNotes=v.addedNotes||[];
+ v.addedNotes.push({id:makeId(),at:new Date().toLocaleString('cs-CZ'),text:t.trim()});
+ saveDB();openHistory();
 }
 
 function latestVisit(c){
@@ -710,7 +812,7 @@ function buildClientPlan(c,v){
  <div class="planNext">
    <h3>Co dál</h3>
    ${next?`<p><b>Doporučené další ošetření:</b> ${esc(next)}</p>`:''}
-   ${interval?`<p><b>Ideální interval:</b> ${esc(interval)}</p>`:''}
+   ${interval?`<p><b>Ideální interval:</b> ${esc(interval)}</p>`:''}${v.nextDate?`<p><b>Váš příští termín:</b> ${esc(fmtDate(v.nextDate))}</p>`:''}
    ${goals.length?`<p><b>Příště zkontrolujeme:</b> ${esc(goals.slice(0,3).join(' • '))}</p>`:''}
    ${samples.length?`<p><b>Vzorky, které jste si odnesla:</b> ${esc(samples.join(', '))}</p>`:''}
  </div>
@@ -747,29 +849,45 @@ function photoChanged(input,key){
  let f=input.files?.[0];if(!f)return;let reader=new FileReader();
  reader.onload=e=>{let img=new Image();img.onload=()=>{let max=1000,scale=Math.min(1,max/Math.max(img.width,img.height)),cv=document.createElement('canvas');cv.width=Math.round(img.width*scale);cv.height=Math.round(img.height*scale);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);let data=cv.toDataURL('image/jpeg',.7);tempPhotos[key]=data;let target=$(key+'Img');target.src=data;target.classList.remove('hidden')};img.src=e.target.result};reader.readAsDataURL(f)
 }
+function compactVisit(v,n){
+ let state=[...(v.goals||[])].slice(0,3).join(', ');
+ let notes=(v.addedNotes||[]).map(x=>`${x.at}: ${x.text}`).join(' | ');
+ return `<div class="compactVisit"><div class="cvNum">${n}</div><div class="cvBody">
+ <div class="cvHead">${esc(v.date||'')} | ${esc(v.therapist||'')} | <b>${esc(v.treatment||'')}</b></div>
+ <div><b>Stav/cíl:</b> ${esc(state||v.diagnosis||'—')}</div>
+ <div><b>Průběh:</b> ${esc((v.techniques||[]).join(', ')||'—')}</div>
+ <div><b>Produkty:</b> ${esc((v.products||[]).join(', ')||'—')}</div>
+ <div><b>Reakce:</b> ${esc((v.reactions||[]).join(', ')||'—')} ${esc(v.reactionNote||'')}</div>
+ <div><b>Domů:</b> R: ${esc((v.homeMorning||[]).join(', ')||'—')} / V: ${esc((v.homeEvening||[]).join(', ')||'—')} / týdně: ${esc((v.homeWeekly||[]).join(', ')||'—')}</div>
+ <div><b>Dále:</b> ${esc(v.nextTreatment||'—')} ${esc(v.nextInterval||'')} ${v.nextDate?'| termín '+esc(v.nextDate):''} ${v.samples?.length?'| vzorky: '+esc(v.samples.join(', ')):''}</div>
+ ${notes?`<div><b>Doplněno:</b> ${esc(notes)}</div>`:''}
+ </div></div>`;
+}
 function printClient(){
- let c=cur();
- if(!c) return;
- let q=c.consultation||{}, vis=[...(c.visits||[])].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
- let html=`<div class="card"><h2>Le Fler – Klientská karta</h2><p><b>Klientka:</b> ${esc(c.name)}<br><b>Datum narození:</b> ${esc(c.birth||'—')}<br><b>Telefon:</b> ${esc(c.phone||'—')}<br><b>E-mail:</b> ${esc(c.email||'—')}<br><b>Terapeutka:</b> ${esc(c.therapist||'—')}</p></div>
- <div class="card"><h2>Konzultace</h2>
- <p><b>Cíle / potíže:</b> ${esc((q.goals||[]).join(', ')||'—')}<br>${nl(q.goalNote||'')}</p>
- <p><b>Zdravotní stav:</b> ${nl(q.health||'—')}<br><b>Léky / doplňky:</b> ${nl(q.meds||'—')}</p>
- <p><b>Implantáty:</b> ${esc((q.implants||[]).join(', ')||'—')} ${nl(q.implantNote||'')}</p>
- <p><b>Alergie:</b> ${esc((q.allergies||[]).join(', ')||'—')} ${nl(q.allergyNote||'')}</p>
- <p><b>Současné produkty:</b> ${esc((q.currentProducts||[]).join(', ')||'—')} ${nl(q.otherProducts||'')}</p>
- <p><b>Domácí rutina:</b> ${nl(q.routine||'—')}</p>
- <p><b>Nedávný peeling / botox / výplně:</b> ${esc(q.recent||'—')} ${esc(q.recentDate||'')} ${nl(q.recentNote||'')}</p>
- <p><b>Těhotná:</b> ${q.preg?'Ano':'Ne'} &nbsp; <b>Kojí:</b> ${q.breast?'Ano':'Ne'}<br><b>Opary:</b> ${esc(q.herpes||'—')} ${nl(q.herpesNote||'')}<br><b>Citlivost:</b> ${esc(q.sensitive||'—')} ${nl(q.sensitiveNote||'')}</p></div>`;
- vis.forEach((v,i)=>{html+=`<div class="card ${i?'print-break':''}"><h2>Návštěva ${esc(v.date||'')} – ${esc(v.treatment||'')}</h2>
- <p><b>Terapeutka:</b> ${esc(v.therapist||'—')}<br><b>Cíle / stav:</b> ${esc((v.goals||[]).join(', ')||'—')}</p>
- <p><b>Diagnostika:</b> ${nl(v.diagnosis||'—')}</p><p><b>Techniky / přístroje:</b> ${esc((v.techniques||[]).join(', ')||'—')} ${nl(v.techniqueNote||'')}</p>
- <p><b>Použité produkty:</b> ${esc((v.products||[]).join(', ')||'—')} ${nl(v.productNote||'')}</p><p><b>Aktivní látky:</b> ${esc((v.actives||[]).join(', ')||'—')}</p>
- <p><b>Reakce pleti:</b> ${esc((v.reactions||[]).join(', ')||'—')} ${nl(v.reactionNote||'')}</p>
- <p><b>Doporučení na doma:</b><br>Ráno: ${esc((v.homeMorning||[]).join(', ')||'—')}<br>Večer: ${esc((v.homeEvening||[]).join(', ')||'—')}<br>1–2× týdně: ${esc((v.homeWeekly||[]).join(', ')||'—')}<br>${nl(v.homeNote||'')}</p>
- <p><b>Další doporučený krok:</b> ${esc(v.nextTreatment||'—')} / ${esc(v.nextInterval||'—')}<br><b>Objednána na místě:</b> ${v.booked?'Ano':'Ne'}<br><b>Vzorky:</b> ${esc((v.samples||[]).join(', ')||'—')}</p>
- ${printPhotos(v.photos)}</div>`});
- $('printContent').innerHTML=html;go('printScreen');setTimeout(()=>{window.print();openHistory()},200)
+ let c=cur();if(!c)return;
+ let q=c.consultation||{},vis=[...(c.visits||[])].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+ let first=vis.slice(0,6), rest=vis.slice(6);
+ let consult=`<div class="printHalf consultationHalf"><h2>LE FLER – KLIENTSKÁ KARTA</h2>
+ <div class="pcRow"><b>Klientka:</b> ${esc(c.name)} &nbsp; <b>Nar.:</b> ${esc(c.birth||'—')}</div>
+ <div class="pcRow"><b>Telefon:</b> ${esc(c.phone||'—')} &nbsp; <b>E-mail:</b> ${esc(c.email||'—')}</div>
+ <div class="pcRow"><b>Hlavní terapeutka:</b> ${esc(c.therapist||'—')}</div>
+ <h3>KONZULTACE</h3><p><b>Cíle / potíže:</b> ${esc((q.goals||[]).join(', ')||'—')}</p><p>${nl(q.goalNote||'')}</p>
+ <h3>ZDRAVOTNÍ A BEZPEČNOSTNÍ INFORMACE</h3>
+ <p><b>Zdravotní stav:</b> ${nl(q.health||'—')}<br><b>Léky / doplňky:</b> ${nl(q.meds||'—')}<br><b>Implantáty:</b> ${esc((q.implants||[]).join(', ')||'—')} ${nl(q.implantNote||'')}<br><b>Alergie:</b> ${esc((q.allergies||[]).join(', ')||'—')} ${nl(q.allergyNote||'')}<br><b>Těhotná / kojí:</b> ${q.preg?'Ano':'Ne'} / ${q.breast?'Ano':'Ne'}<br><b>Opary:</b> ${esc(q.herpes||'—')} ${nl(q.herpesNote||'')}<br><b>Citlivost:</b> ${esc(q.sensitive||'—')} ${nl(q.sensitiveNote||'')}</p>
+ <h3>SOUČASNÁ DOMÁCÍ PÉČE</h3><p><b>Produkty:</b> ${esc((q.currentProducts||[]).join(', ')||'—')} ${nl(q.otherProducts||'')}<br><b>Rutina:</b> ${nl(q.routine||'—')}</p>
+ <h3>DALŠÍ INFORMACE</h3><p><b>Dermalogica:</b> ${esc(q.derm||'—')} &nbsp; <b>Zájem o domácí plán:</b> ${esc(q.homePlan||'—')}<br><b>Peeling / botox / výplně poslední měsíc:</b> ${esc(q.recent||'—')} ${esc(q.recentDate||'')} ${nl(q.recentNote||'')}</p>
+ </div>`;
+ let hist1=`<div class="printHalf historyHalf"><h2>HISTORIE OŠETŘENÍ</h2>${first.map((v,i)=>compactVisit(v,i+1)).join('')}${first.length<6?Array.from({length:6-first.length},(_,j)=>`<div class="compactVisit blank"><div class="cvNum">${first.length+j+1}</div><div class="cvBody">Datum: __________ &nbsp; Terapeutka: __________ &nbsp; Ošetření: ____________________<br>Stav/cíl: _______________________________________________<br>Průběh / produkty / reakce / domů / dále: _______________________________________________</div></div>`).join(''):''}</div>`;
+ let pages=`<div class="a4Landscape">${consult}${hist1}</div>`;
+ if(rest.length){
+   for(let i=0;i<rest.length;i+=12){
+     let chunk=rest.slice(i,i+12);
+     pages+=`<div class="a4Landscape print-break"><div class="printHalf historyHalf"><h2>HISTORIE – pokračování</h2>${chunk.slice(0,6).map((v,j)=>compactVisit(v,7+i+j)).join('')}</div><div class="printHalf historyHalf"><h2>HISTORIE – pokračování</h2>${chunk.slice(6,12).map((v,j)=>compactVisit(v,13+i+j)).join('')}</div></div>`;
+   }
+ } else {
+   pages+=`<div class="a4Landscape print-break"><div class="printHalf historyHalf"><h2>HISTORIE – pokračování</h2>${Array.from({length:6},(_,j)=>`<div class="compactVisit blank"><div class="cvNum">${7+j}</div><div class="cvBody">Datum: __________ &nbsp; Terapeutka: __________ &nbsp; Ošetření: ____________________<br>Stav/cíl: _______________________________________________<br>Průběh / produkty / reakce / domů / dále: _______________________________________________</div></div>`).join('')}<div class="historyNotesPrint"><b>DODATEČNÉ POZNÁMKY K HISTORII</b><br>Datum/čas: __________ K návštěvě č.: ____ ______________________________________________</div></div><div class="printHalf historyHalf"><h2>HISTORIE – pokračování</h2>${Array.from({length:6},(_,j)=>`<div class="compactVisit blank"><div class="cvNum">${13+j}</div><div class="cvBody">Datum: __________ &nbsp; Terapeutka: __________ &nbsp; Ošetření: ____________________<br>Stav/cíl: _______________________________________________<br>Průběh / produkty / reakce / domů / dále: _______________________________________________</div></div>`).join('')}</div></div>`;
+ }
+ $('printContent').innerHTML=pages;go('printScreen');setTimeout(()=>{window.print();openOverview()},250)
 }
 function printPhotos(p){
  if(!p)return'';let items=[['Před – čelní','beforeFront'],['Po – čelní','afterFront'],['Před – detail','beforeDetail'],['Po – detail','afterDetail']].filter(x=>p[x[1]]);
