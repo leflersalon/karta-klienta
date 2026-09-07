@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Le Fler – Digitální klientská karta V3</title>
+<style>
+:root{--b:#4e342e;--bg:#f7f5f3;--line:#d8d2ce;--muted:#6d625d;--warn:#9a2d21;--ok:#295c38}
+*{box-sizing:border-box} body{font-family:Arial,Helvetica,sans-serif;margin:0;background:var(--bg);color:#1f1b19}
+header{background:#fff;border-bottom:1px solid var(--line);padding:14px 18px;position:sticky;top:0;z-index:10}
+header h1{font-size:20px;margin:0 0 8px}.toolbar{display:flex;gap:7px;flex-wrap:wrap}
+button{padding:8px 11px;border:1px solid #aaa;background:#fff;border-radius:5px;cursor:pointer}
+button.primary{background:var(--b);color:#fff;border-color:var(--b)} button:disabled{opacity:.45;cursor:not-allowed}
+main{max-width:1150px;margin:18px auto;padding:0 12px 50px}.screen{display:none}.screen.active{display:block}
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:14px}
+h2{font-size:20px;margin:0 0 14px}h3{font-size:16px;margin:16px 0 8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+label{display:block;font-weight:700;font-size:13px;margin-bottom:4px}
+input,select,textarea{width:100%;padding:8px;border:1px solid #bbb;border-radius:4px;background:#fff;font:inherit}
+textarea{min-height:78px;resize:vertical}.help{color:var(--muted);font-size:12px;margin:3px 0 8px}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin:6px 0 10px}.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #bbb;border-radius:20px;padding:7px 10px;background:#fff;font-size:13px}.chip input{width:auto;margin:0}
+.warning{border:2px solid #cc5d4d;background:#fff1ef;color:#7d2117;padding:12px;margin:10px 0;font-weight:700}.hidden{display:none!important}
+.notice{background:#f1efed;padding:10px;border-radius:5px;margin-bottom:12px}.muted{color:var(--muted)}
+.steps{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}.stepBtn.active{background:#4e342e;color:#fff}
+.actions{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:14px}
+.listItem{border:1px solid var(--line);border-radius:6px;padding:10px;margin:7px 0;background:#fff}
+.internal{border-left:5px solid #7b4b36;background:#f8f1ec;padding:8px;margin-top:7px}.important{border-left-color:#b22020;background:#fff0f0}
+.tags{display:flex;flex-wrap:wrap;gap:4px}.tag{background:#eee8e4;border-radius:12px;padding:3px 7px;font-size:12px}
+.photoGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.photoBox img{max-width:100%;max-height:180px;display:block;margin-top:5px}
+.search{max-width:480px}.print-only{display:none}
+@media(max-width:800px){.grid2,.grid3,.photoGrid{grid-template-columns:1fr}.toolbar button{flex:1 1 auto}}
+
+.clientPlanHero{border-bottom:2px solid var(--b);padding-bottom:12px;margin-bottom:18px}
+.clientPlanHero h2{font-size:28px;margin-bottom:6px}
+.clientPlanMeta{color:var(--muted);font-size:13px}
+.planLead{font-size:17px;line-height:1.5}
+.planGoalBox{background:#f4efec;border-left:5px solid var(--b);padding:14px;margin:14px 0 18px}
+.planColumns{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.planRoutine{border:1px solid var(--line);border-radius:8px;padding:14px;background:#fff}
+.planRoutine h3{margin-top:0}
+.planStep{padding:9px 0;border-bottom:1px solid #eee}
+.planStep:last-child{border-bottom:0}
+.planStep b{display:block;margin-bottom:3px}
+.planNote{background:#faf7f5;border-radius:8px;padding:14px;margin-top:14px}
+.planNext{border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:14px}
+.planMarketing{margin-top:20px;padding-top:16px;border-top:1px dashed #aaa}
+.planFooter{margin-top:20px;text-align:center;color:var(--muted);font-size:12px}
+@media(max-width:800px){.planColumns{grid-template-columns:1fr}}
+@media print{
+ .clientPlanHero h2{font-size:24px}
+ .planColumns{grid-template-columns:1fr 1fr}
+ .planRoutine,.planNext,.planGoalBox,.planNote{break-inside:avoid}
+}
+
+@media print{
+ body{background:#fff}header,.no-print,.screen:not(#printScreen){display:none!important}
+ #printScreen{display:block!important}.print-only{display:block}.card{border:0;padding:0;margin:0 0 14px}
+ @page{size:A4;margin:12mm}h2{border-bottom:1px solid #555;padding-bottom:5px}
+ .print-break{break-before:page}.internal{display:none!important}
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Le Fler – Digitální klientská karta V3</h1>
+<div class="toolbar">
+<button onclick="go('clients')">Klientky</button>
+<button onclick="newClient()">+ Nová klientka</button>
+<button id="bConsult" onclick="openConsult()" disabled>Konzultace</button>
+<button id="bVisit" onclick="newVisit()" disabled>+ Nová návštěva</button>
+<button id="bHistory" onclick="openHistory()" disabled>Historie</button>
+<button id="bPrint" onclick="printClient()" disabled>Interní karta PDF</button>
+<button id="bPlan" onclick="openClientPlan()" disabled>Plán pro klientku</button>
+<button onclick="exportJson()">Export JSON</button>
+<button onclick="resetDemo()">Obnovit 3 testovací klientky</button>
+</div>
+</header>
+<main>
+<div id="status" class="notice hidden"></div>
+
+<section id="clients" class="screen active">
+ <div class="card">
+  <h2>Klientky</h2>
+  <input class="search" id="search" placeholder="Hledat jméno, telefon, e-mail…" oninput="renderClients()">
+  <div id="clientList"></div>
+ </div>
+</section>
+
+<section id="clientFormScreen" class="screen">
+ <div class="card">
+ <h2 id="clientTitle">Nová klientka</h2>
+ <form id="clientForm" onsubmit="saveClient(event)">
+  <input type="hidden" id="clientId">
+  <div class="grid2">
+   <div><label>Jméno a příjmení</label><input id="cName" required></div>
+   <div><label>Datum narození</label><input id="cBirth" type="date"></div>
+   <div><label>Telefon</label><input id="cPhone"></div>
+   <div><label>E-mail</label><input id="cEmail" type="email"></div>
+   <div><label>Hlavní terapeutka</label><select id="cTherapist"></select></div>
+   <div><label>Jak se o nás dozvěděla?</label><select id="cSource"><option></option><option>Google</option><option>Instagram</option><option>Facebook</option><option>Doporučení klientky</option><option>Prošla kolem</option><option>Jiné</option></select></div>
+  </div>
+  <div class="actions"><button type="button" onclick="go('clients')">Zrušit</button><button class="primary">Uložit klientku</button></div>
+ </form>
+ </div>
+</section>
+
+<section id="consult" class="screen">
+ <div class="card">
+  <h2>Konzultační karta</h2><div id="consultWho" class="notice"></div>
+  <form id="consultForm" onsubmit="saveConsult(event)">
+   <h3>1. Potíže s pletí / cíl návštěvy</h3>
+   <label>Oblast Skin Checku (volitelné předvyplnění)</label>
+   <select id="skinTopic" onchange="prefillFromSkin()"><option value="">— bez předvyplnění —</option></select>
+   <div class="help">Používá stejný slovník jako Skin Check V11. Kosmetička může výběr libovolně upravit.</div>
+   <div id="goalChips" class="chips"></div>
+   <label>Individuální poznámka kosmetičky</label><textarea id="qGoalNote"></textarea>
+   <label>Pokud se řeší akné – cyklus / dermatolog / léčba</label><textarea id="qAcne"></textarea>
+
+   <h3>2. Zdravotní stav</h3>
+   <label>Zdravotní stav / zdravotní obtíže</label><textarea id="qHealth"></textarea>
+   <label>Léky, doplňky, vitamíny, antikoncepce, Isotretinoin, další léčba</label><textarea id="qMeds"></textarea>
+
+   <h3>Implantáty / přístrojové kontraindikace</h3>
+   <div id="implantChips" class="chips"></div><textarea id="qImplantNote" placeholder="Upřesnění…"></textarea>
+
+   <h3>3. Alergie</h3>
+   <div id="allergyChips" class="chips"></div><textarea id="qAllergyNote" placeholder="Konkrétní alergie / upřesnění…"></textarea>
+
+   <h3>4. Zkušenost s Dermalogicou</h3>
+   <select id="qDerm"><option></option><option>Ano</option><option>Ne</option></select>
+   <label>Zájem o sestavení domácí péče / vzorky</label>
+   <select id="qHomePlan"><option></option><option>Ano</option><option>Ne</option><option>Nevím</option></select>
+
+   <h3>5. Současné produkty</h3>
+   <div id="currentProductChips" class="chips"></div>
+   <textarea id="qOtherProducts" placeholder="Další produkty mimo databázi / značky / aktivní látky…"></textarea>
+
+   <h3>6. Současná domácí rutina</h3>
+   <textarea id="qRoutine"></textarea>
+
+   <h3>7. Chemický peeling / botox / výplně v posledním měsíci</h3>
+   <select id="qRecent"><option>Ne</option><option>Ano</option></select>
+   <input id="qRecentDate" type="date"><textarea id="qRecentNote" placeholder="Co a kdy…"></textarea>
+
+   <h3>8. Těhotenství / kojení</h3>
+   <div class="chips"><label class="chip"><input id="qPreg" type="checkbox"> Těhotná</label><label class="chip"><input id="qBreast" type="checkbox"> Kojí</label></div>
+
+   <h3>9. Opary – STOP faktor</h3>
+   <select id="qHerpes" onchange="updateHerpesWarning()"><option value="ne">Ne</option><option value="historie">Historie oparů</option><option value="aktivni">AKTIVNÍ OPAR</option></select>
+   <textarea id="qHerpesNote" placeholder="Upřesnění…"></textarea>
+   <div id="herpesWarning" class="warning hidden">STOP – aktivní opar. Ošetření neprovádět.</div>
+
+   <h3>10. Citlivost pleti</h3>
+   <select id="qSensitive"><option></option><option>Ano</option><option>Ne</option><option>Někdy</option></select>
+   <textarea id="qSensitiveNote" placeholder="Pnutí, pálení, reakce, problematický výběr kosmetiky…"></textarea>
+
+   <div class="actions"><button type="button" onclick="go('clients')">Zpět</button><button class="primary">Uložit konzultaci</button></div>
+  </form>
+ </div>
+</section>
+
+<section id="visit" class="screen">
+ <div class="card">
+  <h2>Nová návštěva</h2><div id="visitWho" class="notice"></div>
+  <div class="steps no-print" id="visitSteps"></div>
+  <form id="visitForm" onsubmit="return false">
+   <div class="visitStep" data-step="0">
+    <h3>1. Základ a diagnostika</h3>
+    <div class="grid3">
+     <div><label>Datum</label><input type="date" id="vDate"></div>
+     <div><label>Terapeutka</label><select id="vTherapist"></select></div>
+     <div><label>Typ ošetření</label><select id="vTreatment" onchange="treatmentChanged()"></select></div>
+    </div>
+    <label>Stav / cíl pleti</label><div id="vGoalChips" class="chips"></div>
+    <label>Poznámka k diagnostice</label><textarea id="vDiagnosis"></textarea>
+   </div>
+
+   <div class="visitStep hidden" data-step="1">
+    <h3>2. Průběh ošetření – techniky a přístroje</h3>
+    <div id="vTechniqueChips" class="chips"></div>
+    <textarea id="vTechniqueNote" placeholder="Jiná technika / upřesnění…"></textarea>
+   </div>
+
+   <div class="visitStep hidden" data-step="2">
+    <h3>3. Použité produkty a aktivní látky</h3>
+    <label>Produkty použité při ošetření</label><div id="vProductChips" class="chips"></div>
+    <textarea id="vProductNote" placeholder="Další produkt mimo databázi…"></textarea>
+    <label>Aktivní látky</label><div id="vActiveChips" class="chips"></div>
+   </div>
+
+   <div class="visitStep hidden" data-step="3">
+    <h3>4. Reakce pleti</h3>
+    <div id="vReactionChips" class="chips"></div>
+    <label>Poznámka k průběhu a reakci pleti</label><textarea id="vReactionNote"></textarea>
+   </div>
+
+   <div class="visitStep hidden" data-step="4">
+    <h3>5. Doporučení na doma</h3>
+    <label>Ráno</label><div id="homeMorning" class="chips home"></div>
+    <label>Večer</label><div id="homeEvening" class="chips home"></div>
+    <label>1–2× týdně</label><div id="homeWeekly" class="chips home"></div>
+    <textarea id="vHomeNote" placeholder="Doplňující instrukce…"></textarea>
+   </div>
+
+   <div class="visitStep hidden" data-step="5">
+    <h3>6. Další termín</h3>
+    <div class="grid2">
+     <div><label>Doporučený další krok / ošetření</label><select id="vNextTreatment"></select></div>
+     <div><label>Doporučený interval</label><select id="vNextInterval"><option></option><option>2 týdny</option><option>3 týdny</option><option>4 týdny</option><option>5 týdnů</option><option>6 týdnů</option><option>8 týdnů</option><option>Individuálně</option></select></div>
+    </div>
+    <label class="chip"><input type="checkbox" id="vBooked"> Klientka si objednala další termín na místě</label>
+   </div>
+
+   <div class="visitStep hidden" data-step="6">
+    <h3>7. Vzorky</h3><div id="sampleChips" class="chips"></div>
+   </div>
+
+   <div class="visitStep hidden" data-step="7">
+    <h3>8. Interní poznámka</h3>
+    <div class="help">Pouze pro salon. Nikdy se nepropíše do PDF / tiskové karty.</div>
+    <textarea id="vInternal" placeholder="Např. svatba, stres, dovolená, pes, událost, na kterou má kosmetička příště navázat…"></textarea>
+    <label class="chip"><input type="checkbox" id="vImportant"> DŮLEŽITÉ – zobrazit výrazně v historii</label>
+   </div>
+
+   <div class="visitStep hidden" data-step="8">
+    <h3>9. Fotky před a po</h3>
+    <div class="help">V prototypu se fotografie zmenší a uloží lokálně v prohlížeči. Pro ostrý provoz později použijeme bezpečné úložiště.</div>
+    <div class="photoGrid">
+     <div class="photoBox"><label>Před – čelní</label><input type="file" accept="image/*" onchange="photoChanged(this,'beforeFront')"><img id="beforeFrontImg" class="hidden"></div>
+     <div class="photoBox"><label>Po – čelní</label><input type="file" accept="image/*" onchange="photoChanged(this,'afterFront')"><img id="afterFrontImg" class="hidden"></div>
+     <div class="photoBox"><label>Před – detail</label><input type="file" accept="image/*" onchange="photoChanged(this,'beforeDetail')"><img id="beforeDetailImg" class="hidden"></div>
+     <div class="photoBox"><label>Po – detail</label><input type="file" accept="image/*" onchange="photoChanged(this,'afterDetail')"><img id="afterDetailImg" class="hidden"></div>
+    </div>
+   </div>
+  </form>
+  <div class="actions no-print"><button onclick="visitPrev()">← Zpět</button><div><button id="visitNext" onclick="visitNext()">Další →</button> <button id="visitSave" class="primary hidden" onclick="saveVisit()">Uložit návštěvu</button></div></div>
+ </div>
+</section>
+
+<section id="history" class="screen">
+ <div class="card"><h2>Historie klientky</h2><div id="historyWho" class="notice"></div><div id="historyList"></div></div>
+</section>
+
+
+<section id="clientPlan" class="screen">
+ <div class="card">
+  <div class="actions no-print" style="margin-top:0">
+   <button onclick="openHistory()">← Zpět do historie</button>
+   <div>
+    <button onclick="printClientPlan()">Tisk / Uložit jako PDF</button>
+   </div>
+  </div>
+  <div id="clientPlanContent"></div>
+ </div>
+</section>
+
+<section id="printScreen" class="screen">
+ <div id="printContent"></div>
+</section>
+</main>
+
+<script>
+const MASTER={"skincheck": {"pigment": {"name": "Pigmentace", "intro": "Trápí mě tmavé skvrny nebo nerovnoměrný tón pleti.", "steps": [["Když se podíváte do zrcadla, čeho si na tónu pleti všimnete jako první?", ["Plošné hnědé skvrny", "Drobné skvrny po pupíncích", "Nerovnoměrný tón celé pleti", "Jedna konkrétní tmavá skvrna / znaménko"]], ["Kdy máte pocit, že jsou skvrny nejvýraznější nebo se zhoršují?", ["Hlavně po létě a slunci", "Po akné nebo podráždění", "Postupně bez jasné příčiny", "Objevila se náhle"]], ["Jak se o pleť staráte ve vztahu ke slunci?", ["SPF 50 používám každý den", "SPF používám jen v létě", "SPF používám nepravidelně", "SPF nepoužívám"]], ["Jak se vaše pleť kromě pigmentace právě teď cítí?", ["Pleť je klidná a odolná", "Je citlivá a často červená", "Je vysušená / narušená", "Současně mám aktivní akné"]], ["Když se na pigmentový projev podíváte pozorně, jak se chová?", ["Jde o běžné plošné skvrny", "Skvrna mění velikost nebo barvu", "Krvácí / svědí / mění tvar", "Nejsem si jistá, co to je"]]]}, "acne": {"name": "Akné / nedokonalosti", "intro": "Trápí mě pupínky, ucpané póry nebo zánětlivé projevy.", "steps": [["Co vám vaše pleť dává najevo jako první?", ["Černé tečky a ucpané póry", "Drobné bílé pupínky", "Červené zanícené pupínky", "Hluboké bolestivé boule"]], ["Kde si těchto projevů všímáte nejvíc?", ["Jen T-zóna", "Tváře / brada", "Celý obličej", "Obličej + záda / dekolt"]], ["Jak se vaše pleť chová v čase?", ["Je to stále podobné", "Zhoršuje se ve vlnách", "Zhoršilo se po nové kosmetice", "Výrazně se zhoršilo v posledních týdnech"]], ["Co své pleti doma obvykle dopřáváte – nebo naopak nedopřáváte?", ["Jemně čistím + hydratuji", "Hodně ji vysušuji", "Používám několik kyselin najednou", "Používám hutné krémy / oleje", "Prakticky nic"]], ["Jak moc vás projevy omezují a co po nich na pleti zůstává?", ["Není bolestivá a nevznikají jizvy", "Občas zůstane červená skvrna", "Vznikají jizvy", "Akné je hluboké a bolestivé"]]]}, "sensitive": {"name": "Citlivost / zarudnutí", "intro": "Pleť je citlivá, zarudlá, pálí nebo štípe.", "steps": [["Kdyby vám pleť mohla říct, co jí vadí, co by řekla nejčastěji?", ["Pleť štípe", "Pálí", "Červená", "Loupe se", "Kombinace několika problémů"]], ["Kdy se vaše pleť nejčastěji ozve?", ["Nový kosmetický produkt", "Kyseliny / peeling", "Retinoid", "Slunce", "Teplo / chlad", "Nevím"]], ["Jak dlouho vám pleť dává tyto signály?", ["Několik dní", "Několik týdnů", "Dlouhodobě", "Neustále se stav vrací"]], ["Jak s citlivou pletí doma zacházíte?", ["Používám jednoduchou jemnou péči", "Používám hodně aktivních sér", "Exfoliuji několikrát týdně", "Pleť často odmašťuji", "Střídám hodně produktů"]], ["A když se na pleť podíváte právě teď, co vidíte?", ["Jen mírné přechodné zarudnutí", "Výrazné trvalé zarudnutí", "Viditelné cévky", "Zanícené červené projevy"]]]}, "dry": {"name": "Suchost / dehydratace", "intro": "Pleť mě pne, je suchá, dehydratovaná nebo bez jasu.", "steps": [["Jak se vaše pleť během dne nejčastěji cítí?", ["Je suchá celý život", "Začala pnout až nedávno", "Mastí se, ale současně pne", "Je suchá jen na některých místech"]], ["Jak vám pleť dává najevo, že jí něco chybí?", ["Šupinky", "Pnutí", "Jemné linky", "Matný vzhled bez jasu", "Hrubší povrch"]], ["Co vám pleť říká bezprostředně po umytí?", ["Je příjemná", "Trochu pne", "Hodně pne", "Musím okamžitě použít krém"]], ["Co své pleti doma nejčastěji dopřáváte?", ["Hydratační sérum + krém", "Pouze lehké sérum", "Pouze mastný krém", "Hodně kyselin / retinoidů", "Nic pravidelného"]], ["Co byste své pleti chtěla dopřát nejvíc?", ["Hlavně hydrataci", "Zjemnění a komfort", "Rozjasnění", "Vyhlazení jemných linek", "Celkovou regeneraci"]]]}, "antiage": {"name": "Anti-age / prevence stárnutí", "intro": "Nemám jeden konkrétní problém. Chci, aby moje pleť vypadala dobře co nejdéle.", "steps": [["Co byste své pleti chtěla dopřát nejvíc?", ["Chci hlavně udržet pleť v dobrém stavu", "Začínám pozorovat jemné linky", "Pleť ztrácí pevnost", "Vypadá unaveně a bez jasu", "Chci hlavně relaxovat a zároveň pleti něco dopřát"]], ["Jak se vaše pleť právě teď cítí?", ["Je v zásadě bez problémů", "Je spíš sušší", "Je dehydratovaná", "Je citlivější", "Je normální / smíšená"]], ["S jakým pocitem a efektem byste chtěla ze salonu odcházet?", ["Pravidelnou dlouhodobou péči", "Hydrataci a rozjasnění", "Vypnutí a liftingový efekt", "Uvolnění a relaxaci", "Kombinaci všeho"]], ["Jaký vztah máte ke své domácí rutině?", ["Mám pravidelnou rutinu a používám SPF", "Používám základní čištění a krém", "Používám séra a aktivní látky", "Péči střídám podle nálady", "Skoro žádnou rutinu nemám"]], ["Kdyby si vaše pleť mohla z ošetření vybrat jednu věc, co by to bylo?", ["Aby pleť dlouhodobě dobře fungovala", "Aby vypadala svěžeji", "Aby působila pevněji a vypnutěji", "Abych si hlavně odpočinula", "Chci zároveň poradit s domácí péčí"]]]}}, "goals": [{"id": "pigmentace", "name": "Pigmentace / sjednocení tónu", "topics": ["pigment"]}, {"id": "akne", "name": "Akné / nedokonalosti / ucpané póry", "topics": ["acne"]}, {"id": "citlivost", "name": "Citlivost / zarudnutí / zklidnění", "topics": ["sensitive"]}, {"id": "dehydratace", "name": "Suchost / dehydratace / hydratace", "topics": ["dry"]}, {"id": "antiage", "name": "Anti-age / prevence", "topics": ["antiage"]}, {"id": "lifting", "name": "Pevnost / liftingový efekt", "topics": ["antiage", "dry"]}, {"id": "rozjasneni", "name": "Rozjasnění / jas", "topics": ["pigment", "dry", "antiage"]}, {"id": "relaxace", "name": "Relaxace", "topics": ["antiage"]}, {"id": "regenerace", "name": "Regenerace", "topics": ["dry", "antiage"]}, {"id": "rutina", "name": "Nastavení domácí rutiny", "topics": ["antiage", "dry", "acne", "sensitive", "pigment"]}], "treatments": [{"name": "Osobní konzultace", "kind": "hlavní výsledek", "topics": ["pigment", "acne", "sensitive"], "note": "Při varovných znacích / nejasném nálezu."}, {"name": "ProBright", "kind": "hlavní výsledek", "topics": ["pigment"], "note": "Cílená péče pro pigmentaci a sjednocení tónu."}, {"name": "ProCalm", "kind": "hlavní výsledek", "topics": ["pigment", "sensitive"], "note": "Zklidnění a podpora kožní bariéry."}, {"name": "Ošetření Expert", "kind": "hlavní výsledek", "topics": ["pigment", "acne", "sensitive", "dry"], "note": "Individuální postup pro komplikovanější / reaktivní stav."}, {"name": "ProSkin", "kind": "hlavní výsledek", "topics": ["acne", "dry", "antiage"], "note": "Pravidelná kosmetická péče, hydratace, čištění, výživa."}, {"name": "Liftingová masáž", "kind": "hlavní výsledek", "topics": ["dry", "antiage"], "note": "Relaxace, komfort, pevnost a liftingový efekt."}, {"name": "Hloubkové ošetření", "kind": "další krok", "topics": ["pigment"], "note": "V11 zmiňuje jako možnost výraznější korekce."}, {"name": "SQT Revitalizing", "kind": "alternativa / další krok", "topics": ["pigment"], "note": "Až po osobním posouzení tolerance."}, {"name": "SQT Resurfacing", "kind": "alternativa / další krok", "topics": ["acne"], "note": "Až ve stabilní fázi a po posouzení kosmetičkou."}, {"name": "SQT Nourishing", "kind": "alternativa / další krok", "topics": ["dry"], "note": "Intenzivnější regenerace po osobním posouzení."}, {"name": "SQT Anti-Aging", "kind": "alternativa / další krok", "topics": ["antiage"], "note": "Intenzivnější anti-age krok až po diagnostice."}], "products": [{"name": "Stabilizing Repair Cream", "topics": ["pigment", "acne", "sensitive", "dry"], "use": "domácí péče"}, {"name": "PowerBright Dark Spot Serum", "topics": ["pigment"], "use": "domácí péče"}, {"name": "PowerBright Moisturizer SPF50", "topics": ["pigment"], "use": "domácí péče"}, {"name": "AGE Bright Clearing Serum", "topics": ["acne"], "use": "domácí péče"}, {"name": "Active Moist", "topics": ["acne"], "use": "domácí péče"}, {"name": "Clearing Defense SPF30", "topics": ["acne"], "use": "domácí péče"}, {"name": "Calm Water Gel", "topics": ["sensitive", "dry"], "use": "domácí péče"}, {"name": "UltraCalming Cleanser", "topics": ["sensitive"], "use": "domácí péče"}, {"name": "Circular Hydration Serum", "topics": ["dry", "antiage"], "use": "domácí péče"}, {"name": "Intensive Moisture Balance", "topics": ["dry"], "use": "domácí péče"}, {"name": "Dynamic Skin Recovery SPF50", "topics": ["dry", "antiage"], "use": "domácí péče"}, {"name": "Phyto-Nature Firming Serum", "topics": ["antiage"], "use": "domácí péče"}, {"name": "BioLumin-C Serum", "topics": ["antiage"], "use": "domácí péče"}], "actives": [{"name": "Ceramidy", "topics": ["pigment", "acne", "sensitive", "dry"]}, {"name": "Panthenol", "topics": ["pigment", "acne", "sensitive", "dry"]}, {"name": "Niacinamid", "topics": ["pigment", "acne"]}, {"name": "Vitamin C", "topics": ["pigment", "antiage"]}, {"name": "Kyselina azelaová", "topics": ["pigment", "acne"]}, {"name": "Kyselina tranexamová", "topics": ["pigment"]}, {"name": "Kyselina salicylová", "topics": ["acne"]}, {"name": "Centella asiatica", "topics": ["sensitive"]}, {"name": "Skvalan", "topics": ["sensitive", "dry"]}, {"name": "Beta-glukan", "topics": ["sensitive", "dry"]}, {"name": "Glycerin", "topics": ["dry"]}, {"name": "Kyselina hyaluronová", "topics": ["dry"]}, {"name": "Cholesterol", "topics": ["dry"]}, {"name": "Mastné kyseliny", "topics": ["dry"]}, {"name": "Humektanty", "topics": ["dry"]}, {"name": "Antioxidanty", "topics": ["antiage"]}, {"name": "SPF / fotoprotekce", "topics": ["pigment", "acne", "sensitive", "antiage"]}], "techniques": [{"name": "Biostimulační laser", "type": "přístroj / podpora", "topics": ["acne", "dry"]}, {"name": "Studená plazma Dr. Platon", "type": "přístroj / podpora", "topics": ["acne"]}, {"name": "Čištění", "type": "technika", "topics": ["acne", "antiage"]}, {"name": "Hydratační maska", "type": "technika", "topics": ["dry"]}, {"name": "Maska", "type": "technika", "topics": ["acne", "antiage"]}, {"name": "Výživa", "type": "technika", "topics": ["acne", "dry", "antiage"]}, {"name": "Jemná exfoliace dle tolerance", "type": "technika", "topics": ["pigment", "antiage"]}, {"name": "Liftingová masáž obličeje", "type": "technika", "topics": ["antiage", "dry"]}, {"name": "Bariérová / zklidňující péče", "type": "technika", "topics": ["sensitive", "dry"]}], "allergies": ["Pyl", "Plísně", "Potraviny", "Léky", "Kosmetické složky", "Jiné"], "implants": ["Žádné", "Kardiostimulátor", "Kovový implantát", "Piercing v ošetřované oblasti", "Jiné"], "reactions": [{"name": "Dobrá tolerance", "severity": "OK"}, {"name": "Bez viditelné reakce", "severity": "OK"}, {"name": "Mírné přechodné začervenání", "severity": "sledovat"}, {"name": "Výrazné začervenání", "severity": "pozor"}, {"name": "Pálení", "severity": "pozor"}, {"name": "Štípání", "severity": "pozor"}, {"name": "Pnutí", "severity": "sledovat"}, {"name": "Citlivost / reaktivita", "severity": "sledovat"}, {"name": "Klientka bez diskomfortu", "severity": "OK"}], "therapists": ["Maky", "Markéta", "Jana", "Kristýna", "Týna", "Pavla", "Vlasta", "Tereza"], "treatmentMap": {"ProBright": {"techniques": ["Jemná exfoliace dle tolerance"], "products": ["PowerBright Dark Spot Serum", "PowerBright Moisturizer SPF50"], "actives": ["Vitamin C", "Niacinamid", "Kyselina azelaová", "Kyselina tranexamová", "SPF / fotoprotekce"]}, "ProCalm": {"techniques": ["Bariérová / zklidňující péče"], "products": ["Stabilizing Repair Cream", "Calm Water Gel", "UltraCalming Cleanser"], "actives": ["Ceramidy", "Panthenol", "Centella asiatica", "Skvalan", "Beta-glukan", "SPF / fotoprotekce"]}, "Ošetření Expert": {"techniques": ["Biostimulační laser", "Studená plazma Dr. Platon", "Bariérová / zklidňující péče"], "products": ["Stabilizing Repair Cream", "Circular Hydration Serum"], "actives": ["Ceramidy", "Panthenol", "Niacinamid", "Kyselina azelaová"]}, "ProSkin": {"techniques": ["Čištění", "Maska", "Hydratační maska", "Výživa", "Jemná exfoliace dle tolerance"], "products": ["AGE Bright Clearing Serum", "Active Moist", "Circular Hydration Serum", "Calm Water Gel", "Intensive Moisture Balance", "BioLumin-C Serum", "Dynamic Skin Recovery SPF50"], "actives": ["Kyselina salicylová", "Niacinamid", "Kyselina azelaová", "Glycerin", "Kyselina hyaluronová", "Antioxidanty"]}, "Liftingová masáž": {"techniques": ["Liftingová masáž obličeje"], "products": ["Circular Hydration Serum", "Phyto-Nature Firming Serum", "Dynamic Skin Recovery SPF50"], "actives": ["Kyselina hyaluronová", "Antioxidanty", "SPF / fotoprotekce"]}}};
+const STORE='lefler_client_card_v3_test';
+const DEMO_DB={
+  clients:[
+    {
+      id:"demo-jana",
+      name:"Jana Nováková",
+      birth:"1987-04-18",
+      phone:"+420 777 111 222",
+      email:"jana.novakova@example.cz",
+      therapist:"Maky",
+      source:"Instagram",
+      consultation:{
+        skinTopic:"dry",
+        goals:["Suchost / dehydratace / hydratace","Citlivost / zarudnutí / zklidnění","Anti-age / prevence"],
+        goalNote:"Pleť je dehydratovaná, citlivější v oblasti tváří a bez jasu.",
+        acne:"",
+        health:"Bez zásadních zdravotních omezení.",
+        meds:"Hořčík, vitamin D.",
+        implants:["Žádné"],
+        implantNote:"",
+        allergies:["Pyl"],
+        allergyNote:"Sezónní alergie na pyl.",
+        derm:"Ano",
+        homePlan:"Ano",
+        currentProducts:["UltraCalming Cleanser","Circular Hydration Serum","Dynamic Skin Recovery SPF50"],
+        otherProducts:"",
+        routine:"Ráno jemné čištění, sérum, krém a SPF. Večer čištění, sérum a krém.",
+        recent:"Ne",
+        recentDate:"",
+        recentNote:"",
+        preg:false,
+        breast:false,
+        herpes:"historie",
+        herpesNote:"Opar cca 1–2× ročně, aktuálně bez projevu.",
+        sensitive:"Ano",
+        sensitiveNote:"Občasné pnutí a začervenání po změně počasí.",
+        updated:"2026-09-01T10:00:00.000Z"
+      },
+      visits:[
+        {
+          id:"jana-v1",
+          date:"2026-08-03",
+          therapist:"Maky",
+          treatment:"ProCalm",
+          goals:["Citlivost / zarudnutí / zklidnění","Suchost / dehydratace / hydratace"],
+          diagnosis:"Citlivější pleť, oslabená bariéra, lehká dehydratace.",
+          techniques:["Bariérová / zklidňující péče"],
+          techniqueNote:"",
+          products:["Stabilizing Repair Cream","Calm Water Gel","UltraCalming Cleanser"],
+          productNote:"",
+          actives:["Ceramidy","Panthenol","Centella asiatica","Skvalan"],
+          reactions:["Dobrá tolerance","Mírné přechodné začervenání"],
+          reactionNote:"Začervenání ustoupilo během několika minut.",
+          homeMorning:["UltraCalming Cleanser","Calm Water Gel","Dynamic Skin Recovery SPF50"],
+          homeEvening:["UltraCalming Cleanser","Stabilizing Repair Cream"],
+          homeWeekly:[],
+          homeNote:"Dočasně vynechat intenzivní exfoliaci.",
+          nextTreatment:"ProSkin",
+          nextInterval:"5 týdnů",
+          booked:false,
+          samples:["Stabilizing Repair Cream"],
+          internal:"Příště se zeptat na reakci po dovolené u moře.",
+          important:false,
+          photos:{},
+          created:"2026-08-03T12:00:00.000Z"
+        },
+        {
+          id:"jana-v2",
+          date:"2026-09-07",
+          therapist:"Maky",
+          treatment:"ProSkin",
+          goals:["Suchost / dehydratace / hydratace","Citlivost / zarudnutí / zklidnění","Rozjasnění / jas"],
+          diagnosis:"Pleť je stále dehydratovaná, ale méně reaktivní. Cíl: hydratace, zklidnění a podpora bariéry.",
+          techniques:["Čištění","Hydratační maska","Výživa","Jemná exfoliace dle tolerance"],
+          techniqueNote:"Exfoliace velmi jemně, bez diskomfortu.",
+          products:["Circular Hydration Serum","Calm Water Gel","Dynamic Skin Recovery SPF50"],
+          productNote:"",
+          actives:["Glycerin","Kyselina hyaluronová","Panthenol","Antioxidanty"],
+          reactions:["Dobrá tolerance","Klientka bez diskomfortu"],
+          reactionNote:"Bez pálení a bez výrazného začervenání.",
+          homeMorning:["UltraCalming Cleanser","Circular Hydration Serum","Dynamic Skin Recovery SPF50"],
+          homeEvening:["UltraCalming Cleanser","Circular Hydration Serum","Stabilizing Repair Cream"],
+          homeWeekly:[],
+          homeNote:"Pokračovat jemně, bez přidávání dalších aktivních produktů.",
+          nextTreatment:"ProSkin",
+          nextInterval:"4 týdny",
+          booked:true,
+          samples:["Circular Hydration Serum"],
+          internal:"Klientka chce dlouhodobě jednoduchou rutinu, ne moc produktů.",
+          important:false,
+          photos:{},
+          created:"2026-09-07T09:00:00.000Z"
+        }
+      ]
+    },
+    {
+      id:"demo-petra",
+      name:"Petra Svobodová",
+      birth:"1979-11-02",
+      phone:"+420 606 333 444",
+      email:"petra.svobodova@example.cz",
+      therapist:"Markéta",
+      source:"Doporučení klientky",
+      consultation:{
+        skinTopic:"pigment",
+        goals:["Pigmentace / sjednocení tónu","Rozjasnění / jas","Anti-age / prevence"],
+        goalNote:"Pigmentové skvrny po létě, nerovnoměrný tón.",
+        acne:"",
+        health:"Bez omezení.",
+        meds:"Žádné pravidelné léky.",
+        implants:["Žádné"],
+        implantNote:"",
+        allergies:[],
+        allergyNote:"",
+        derm:"Ano",
+        homePlan:"Ano",
+        currentProducts:["PowerBright Dark Spot Serum","PowerBright Moisturizer SPF50"],
+        otherProducts:"Jemný čisticí gel jiné značky.",
+        routine:"Ráno čisticí gel, sérum, SPF. Večer čištění a sérum.",
+        recent:"Ne",
+        recentDate:"",
+        recentNote:"",
+        preg:false,
+        breast:false,
+        herpes:"ne",
+        herpesNote:"",
+        sensitive:"Někdy",
+        sensitiveNote:"Po silnější exfoliaci může být pleť citlivější.",
+        updated:"2026-08-20T10:00:00.000Z"
+      },
+      visits:[
+        {
+          id:"petra-v1",
+          date:"2026-08-20",
+          therapist:"Markéta",
+          treatment:"ProBright",
+          goals:["Pigmentace / sjednocení tónu","Rozjasnění / jas"],
+          diagnosis:"Plošné pigmentové skvrny, bez varovných znaků, pleť jinak stabilní.",
+          techniques:["Jemná exfoliace dle tolerance"],
+          techniqueNote:"",
+          products:["PowerBright Dark Spot Serum","PowerBright Moisturizer SPF50"],
+          productNote:"",
+          actives:["Vitamin C","Niacinamid","Kyselina tranexamová","SPF / fotoprotekce"],
+          reactions:["Dobrá tolerance"],
+          reactionNote:"",
+          homeMorning:["PowerBright Dark Spot Serum","PowerBright Moisturizer SPF50"],
+          homeEvening:["PowerBright Dark Spot Serum"],
+          homeWeekly:[],
+          homeNote:"Důsledné SPF každé ráno.",
+          nextTreatment:"ProBright",
+          nextInterval:"6 týdnů",
+          booked:false,
+          samples:["BioLumin-C Serum"],
+          internal:"Příště připomenout sezónnost intenzivnějších peelingů.",
+          important:true,
+          photos:{},
+          created:"2026-08-20T11:00:00.000Z"
+        }
+      ]
+    },
+    {
+      id:"demo-lucie",
+      name:"Lucie Dvořáková",
+      birth:"1998-06-15",
+      phone:"+420 728 555 666",
+      email:"lucie.dvorakova@example.cz",
+      therapist:"Jana",
+      source:"Google",
+      consultation:{
+        skinTopic:"acne",
+        goals:["Akné / nedokonalosti / ucpané póry","Nastavení domácí rutiny"],
+        goalNote:"Ucpané póry a zanícené pupínky hlavně brada a tváře.",
+        acne:"Zhoršení ve vlnách, klientka sleduje souvislost s cyklem.",
+        health:"Bez zásadních omezení.",
+        meds:"Hormonální antikoncepce.",
+        implants:["Žádné"],
+        implantNote:"",
+        allergies:["Kosmetické složky"],
+        allergyNote:"V minulosti reakce na silně parfemovaný produkt.",
+        derm:"Ne",
+        homePlan:"Ano",
+        currentProducts:["AGE Bright Clearing Serum","Active Moist","Clearing Defense SPF30"],
+        otherProducts:"",
+        routine:"Ráno čištění, lehký krém, SPF. Večer čištění a aktivní sérum.",
+        recent:"Ne",
+        recentDate:"",
+        recentNote:"",
+        preg:false,
+        breast:false,
+        herpes:"ne",
+        herpesNote:"",
+        sensitive:"Někdy",
+        sensitiveNote:"Při kombinaci více aktivních látek bývá pleť podrážděná.",
+        updated:"2026-09-02T08:30:00.000Z"
+      },
+      visits:[
+        {
+          id:"lucie-v1",
+          date:"2026-09-02",
+          therapist:"Jana",
+          treatment:"ProSkin",
+          goals:["Akné / nedokonalosti / ucpané póry","Nastavení domácí rutiny"],
+          diagnosis:"Komedony v T-zóně, několik zanícených pupínků na bradě, bariéra lehce oslabená.",
+          techniques:["Čištění","Maska","Jemná exfoliace dle tolerance"],
+          techniqueNote:"Bez agresivního zásahu.",
+          products:["AGE Bright Clearing Serum","Active Moist","Clearing Defense SPF30"],
+          productNote:"",
+          actives:["Kyselina salicylová","Niacinamid","Kyselina azelaová"],
+          reactions:["Mírné přechodné začervenání","Pnutí"],
+          reactionNote:"Pnutí krátce po ošetření, bez pálení.",
+          homeMorning:["Active Moist","Clearing Defense SPF30"],
+          homeEvening:["AGE Bright Clearing Serum","Active Moist"],
+          homeWeekly:[],
+          homeNote:"Nekombinovat více kyselin najednou.",
+          nextTreatment:"Ošetření Expert",
+          nextInterval:"4 týdny",
+          booked:false,
+          samples:["Active Moist"],
+          internal:"Pokud se objeví hluboké bolestivé projevy, doporučit dermatologa.",
+          important:true,
+          photos:{},
+          created:"2026-09-02T10:00:00.000Z"
+        }
+      ]
+    }
+  ]
+};
+
+let DB;
+try{
+  const stored=localStorage.getItem(STORE);
+  DB=stored?JSON.parse(stored):JSON.parse(JSON.stringify(DEMO_DB));
+}catch(e){
+  DB=JSON.parse(JSON.stringify(DEMO_DB));
+}
+if(!localStorage.getItem(STORE)){ localStorage.setItem(STORE,JSON.stringify(DB)); }
+let currentId=null, visitStep=0, tempPhotos={};
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const nl=s=>esc(s).replace(/\n/g,'<br>');
+const ids=(sel)=>[...document.querySelectorAll(sel+':checked')].map(x=>x.value);
+function saveDB(){localStorage.setItem(STORE,JSON.stringify(DB))}
+function cur(){return DB.clients.find(c=>c.id===currentId)}
+function makeId(){return (window.crypto&&typeof crypto.randomUUID==='function')?crypto.randomUUID():('id-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2))}
+function msg(t){$('status').textContent=t;$('status').classList.remove('hidden');setTimeout(()=>$('status').classList.add('hidden'),2200)}
+function go(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));$(id).classList.add('active')}
+function enableButtons(v){['bConsult','bVisit','bHistory','bPrint','bPlan'].forEach(x=>$(x).disabled=!v)}
+function makeOptions(el, arr, blank=true){
+ el.innerHTML=(blank?'<option value=""></option>':'')+arr.map(x=>`<option>${esc(typeof x==='string'?x:x.name)}</option>`).join('')
+}
+function chips(el, arr, cls, selected=[]){
+ el.innerHTML=arr.map((x,i)=>{let name=typeof x==='string'?x:x.name;return `<label class="chip"><input type="checkbox" class="${cls}" value="${esc(name)}" ${selected.includes(name)?'checked':''}> ${esc(name)}</label>`}).join('')
+}
+function setup(){
+ makeOptions($('cTherapist'),MASTER.therapists);
+ makeOptions($('vTherapist'),MASTER.therapists);
+ makeOptions($('vTreatment'),MASTER.treatments.map(x=>x.name));
+ makeOptions($('vNextTreatment'),MASTER.treatments.map(x=>x.name));
+ $('skinTopic').innerHTML='<option value="">— bez předvyplnění —</option>'+Object.entries(MASTER.skincheck).map(([k,v])=>`<option value="${k}">${esc(v.name)}</option>`).join('');
+ chips($('goalChips'),MASTER.goals.map(x=>x.name),'qgoal');
+ chips($('implantChips'),MASTER.implants,'qimplant');
+ chips($('allergyChips'),MASTER.allergies,'qallergy');
+ chips($('currentProductChips'),MASTER.products.map(x=>x.name),'qproduct');
+ chips($('vGoalChips'),MASTER.goals.map(x=>x.name),'vgoal');
+ chips($('vTechniqueChips'),MASTER.techniques,'vtech');
+ chips($('vProductChips'),MASTER.products,'vprod');
+ chips($('vActiveChips'),MASTER.actives,'vactive');
+ chips($('vReactionChips'),MASTER.reactions,'vreact');
+ ['homeMorning','homeEvening','homeWeekly'].forEach((id,idx)=>chips($(id),MASTER.products,idx===0?'hmorn':idx===1?'heve':'hweek'));
+ chips($('sampleChips'),MASTER.products.map(x=>x.name),'vsample');
+ renderClients();
+}
+function newClient(){currentId=null;enableButtons(false);$('clientForm').reset();$('clientId').value='';$('clientTitle').textContent='Nová klientka';go('clientFormScreen')}
+function editClient(id){
+ currentId=id;enableButtons(true);let c=cur();$('clientId').value=c.id;$('cName').value=c.name||'';$('cBirth').value=c.birth||'';$('cPhone').value=c.phone||'';$('cEmail').value=c.email||'';$('cTherapist').value=c.therapist||'';$('cSource').value=c.source||'';$('clientTitle').textContent='Upravit klientku';go('clientFormScreen')
+}
+function saveClient(e){
+ e.preventDefault();let id=$('clientId').value||makeId();let c=DB.clients.find(x=>x.id===id);
+ if(!c){c={id,consultation:{},visits:[]};DB.clients.push(c)}
+ Object.assign(c,{name:$('cName').value.trim(),birth:$('cBirth').value,phone:$('cPhone').value.trim(),email:$('cEmail').value.trim(),therapist:$('cTherapist').value,source:$('cSource').value});
+ currentId=id;saveDB();enableButtons(true);renderClients();msg('Klientka uložena.');openConsult()
+}
+function renderClients(){
+ let q=($('search').value||'').toLowerCase(),box=$('clientList');box.innerHTML='';
+ let arr=DB.clients.filter(c=>[c.name,c.phone,c.email].join(' ').toLowerCase().includes(q)).sort((a,b)=>(a.name||'').localeCompare(b.name||'','cs'));
+ if(!arr.length){box.innerHTML='<p class="muted">Zatím žádná klientka.</p>';return}
+ arr.forEach(c=>box.insertAdjacentHTML('beforeend',`<div class="listItem"><strong>${esc(c.name)}</strong><br><span class="muted">${esc(c.phone||'')} ${esc(c.email||'')}</span><div class="no-print" style="margin-top:7px"><button onclick="selectClient('${c.id}')">Otevřít</button> <button onclick="editClient('${c.id}')">Upravit údaje</button></div></div>`))
+}
+function selectClient(id){currentId=id;enableButtons(true);openHistory()}
+function setChecks(cls, vals){document.querySelectorAll('.'+cls).forEach(x=>x.checked=(vals||[]).includes(x.value))}
+function openConsult(){
+ let c=cur();if(!c)return;$('consultWho').textContent='Klientka: '+c.name;let q=c.consultation||{};
+ $('skinTopic').value=q.skinTopic||''; setChecks('qgoal',q.goals);$('qGoalNote').value=q.goalNote||'';$('qAcne').value=q.acne||'';
+ $('qHealth').value=q.health||'';$('qMeds').value=q.meds||'';setChecks('qimplant',q.implants);$('qImplantNote').value=q.implantNote||'';
+ setChecks('qallergy',q.allergies);$('qAllergyNote').value=q.allergyNote||'';$('qDerm').value=q.derm||'';$('qHomePlan').value=q.homePlan||'';
+ setChecks('qproduct',q.currentProducts);$('qOtherProducts').value=q.otherProducts||'';$('qRoutine').value=q.routine||'';
+ $('qRecent').value=q.recent||'Ne';$('qRecentDate').value=q.recentDate||'';$('qRecentNote').value=q.recentNote||'';
+ $('qPreg').checked=!!q.preg;$('qBreast').checked=!!q.breast;$('qHerpes').value=q.herpes||'ne';$('qHerpesNote').value=q.herpesNote||'';
+ $('qSensitive').value=q.sensitive||'';$('qSensitiveNote').value=q.sensitiveNote||'';updateHerpesWarning();go('consult')
+}
+function prefillFromSkin(){
+ let t=$('skinTopic').value;if(!t)return;
+ let topicName=MASTER.skincheck[t].name.toLowerCase();
+ let wanted=MASTER.goals.filter(g=>g.topics.includes(t)).map(g=>g.name);
+ setChecks('qgoal',wanted);msg('Cíle předvyplněny podle slovníku Skin Checku.')
+}
+function updateHerpesWarning(){$('herpesWarning').classList.toggle('hidden',$('qHerpes').value!=='aktivni')}
+function saveConsult(e){
+ e.preventDefault();let c=cur();
+ c.consultation={skinTopic:$('skinTopic').value,goals:ids('.qgoal'),goalNote:$('qGoalNote').value,acne:$('qAcne').value,
+ health:$('qHealth').value,meds:$('qMeds').value,implants:ids('.qimplant'),implantNote:$('qImplantNote').value,
+ allergies:ids('.qallergy'),allergyNote:$('qAllergyNote').value,derm:$('qDerm').value,homePlan:$('qHomePlan').value,
+ currentProducts:ids('.qproduct'),otherProducts:$('qOtherProducts').value,routine:$('qRoutine').value,recent:$('qRecent').value,
+ recentDate:$('qRecentDate').value,recentNote:$('qRecentNote').value,preg:$('qPreg').checked,breast:$('qBreast').checked,
+ herpes:$('qHerpes').value,herpesNote:$('qHerpesNote').value,sensitive:$('qSensitive').value,sensitiveNote:$('qSensitiveNote').value,
+ updated:new Date().toISOString()};
+ saveDB();msg('Konzultace uložena.');
+ if(c.consultation.herpes==='aktivni'){openHistory()}else newVisit()
+}
+function newVisit(){
+ let c=cur();if(!c)return;
+ if(c.consultation?.herpes==='aktivni'){alert('STOP – v konzultační kartě je označen aktivní opar. Ošetření neprovádět.');openConsult();return}
+ $('visitForm').reset();tempPhotos={};document.querySelectorAll('.visitStep input[type=checkbox]').forEach(x=>x.checked=false);
+ ['beforeFrontImg','afterFrontImg','beforeDetailImg','afterDetailImg'].forEach(x=>{$(x).src='';$(x).classList.add('hidden')});
+ $('vDate').value=new Date().toISOString().slice(0,10);$('vTherapist').value=c.therapist||'';$('visitWho').textContent='Klientka: '+c.name;
+ setChecks('vgoal',c.consultation?.goals||[]);visitStep=0;renderVisitStep();go('visit')
+}
+function treatmentChanged(){
+ let t=$('vTreatment').value,m=MASTER.treatmentMap[t];if(!m)return;
+ setChecks('vtech',m.techniques||[]);setChecks('vprod',m.products||[]);setChecks('vactive',m.actives||[]);
+ msg('Nabídka předvyplněna podle Skin Check V11. Kosmetička ji může změnit.')
+}
+function renderVisitStep(){
+ document.querySelectorAll('.visitStep').forEach((x,i)=>x.classList.toggle('hidden',i!==visitStep));
+ $('visitSteps').innerHTML=['Diagnostika','Techniky','Produkty','Reakce','Domácí péče','Termín','Vzorky','Interní poznámka','Fotky'].map((x,i)=>`<button type="button" class="stepBtn ${i===visitStep?'active':''}" onclick="visitStep=${i};renderVisitStep()">${i+1}. ${x}</button>`).join('');
+ $('visitNext').classList.toggle('hidden',visitStep===8);$('visitSave').classList.toggle('hidden',visitStep!==8)
+}
+function visitNext(){if(visitStep<8){visitStep++;renderVisitStep()}}
+function visitPrev(){if(visitStep>0){visitStep--;renderVisitStep()}else openHistory()}
+function selectedHome(cls){return ids('.'+cls)}
+function saveVisit(){
+ let c=cur();if(!$('vDate').value){alert('Vyplňte datum.');return}
+ c.visits.push({
+  id:makeId(),date:$('vDate').value,therapist:$('vTherapist').value,treatment:$('vTreatment').value,
+  goals:ids('.vgoal'),diagnosis:$('vDiagnosis').value,techniques:ids('.vtech'),techniqueNote:$('vTechniqueNote').value,
+  products:ids('.vprod'),productNote:$('vProductNote').value,actives:ids('.vactive'),reactions:ids('.vreact'),reactionNote:$('vReactionNote').value,
+  homeMorning:selectedHome('hmorn'),homeEvening:selectedHome('heve'),homeWeekly:selectedHome('hweek'),homeNote:$('vHomeNote').value,
+  nextTreatment:$('vNextTreatment').value,nextInterval:$('vNextInterval').value,booked:$('vBooked').checked,samples:ids('.vsample'),
+  internal:$('vInternal').value,important:$('vImportant').checked,photos:tempPhotos,created:new Date().toISOString()
+ });
+ saveDB();msg('Návštěva uložena.');openHistory()
+}
+function openHistory(){
+ let c=cur();if(!c)return;$('historyWho').innerHTML=`<strong>${esc(c.name)}</strong> — ${esc(c.phone||'')} ${esc(c.email||'')}`;
+ let box=$('historyList'),vis=[...(c.visits||[])].sort((a,b)=>(b.date||'').localeCompare(a.date||''));box.innerHTML='';
+ if(!vis.length)box.innerHTML='<p class="muted">Zatím žádná uložená návštěva.</p>';
+ vis.forEach(v=>{
+  box.insertAdjacentHTML('beforeend',`<div class="listItem"><strong>${esc(v.date)} – ${esc(v.treatment||'Bez názvu')}</strong> <span class="muted">(${esc(v.therapist||'')})</span>
+  <div class="tags">${(v.goals||[]).map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>
+  ${(v.internal||'')?`<div class="internal ${v.important?'important':''}"><strong>${v.important?'⚠ DŮLEŽITÉ – ':''}Interní poznámka:</strong> ${nl(v.internal)}</div>`:''}
+  <div class="no-print" style="margin:8px 0"><button onclick="openClientPlan('${v.id}')">Plán pro klientku z této návštěvy</button></div>
+  <details><summary>Celý záznam</summary>
+  <p><b>Diagnostika:</b> ${nl(v.diagnosis||'—')}</p><p><b>Techniky:</b> ${esc((v.techniques||[]).join(', ')||'—')}</p>
+  <p><b>Produkty:</b> ${esc((v.products||[]).join(', ')||'—')}</p><p><b>Aktivní látky:</b> ${esc((v.actives||[]).join(', ')||'—')}</p>
+  <p><b>Reakce:</b> ${esc((v.reactions||[]).join(', ')||'—')} ${nl(v.reactionNote||'')}</p>
+  <p><b>Domácí péče:</b><br>Ráno: ${esc((v.homeMorning||[]).join(', ')||'—')}<br>Večer: ${esc((v.homeEvening||[]).join(', ')||'—')}<br>1–2× týdně: ${esc((v.homeWeekly||[]).join(', ')||'—')}</p>
+  <p><b>Další krok:</b> ${esc(v.nextTreatment||'—')} / ${esc(v.nextInterval||'—')} — ${v.booked?'objednána na místě':'bez rezervace na místě'}</p>
+  <p><b>Vzorky:</b> ${esc((v.samples||[]).join(', ')||'—')}</p></details></div>`)
+ });go('history')
+}
+
+function latestVisit(c){
+ return [...(c.visits||[])].sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0]||null;
+}
+function visitById(c,id){
+ return (c.visits||[]).find(v=>v.id===id)||null;
+}
+function fmtDate(d){
+ if(!d)return'';
+ try{
+  let [y,m,day]=d.split('-').map(Number);
+  return new Intl.DateTimeFormat('cs-CZ',{day:'numeric',month:'long',year:'numeric'}).format(new Date(y,m-1,day));
+ }catch(e){return d}
+}
+function shortGoalName(x){
+ return x.replace('Suchost / dehydratace / hydratace','Hydratace')
+         .replace('Citlivost / zarudnutí / zklidnění','Zklidnění')
+         .replace('Pigmentace / sjednocení tónu','Sjednocení tónu')
+         .replace('Akné / nedokonalosti / ucpané póry','Čistší pleť')
+         .replace('Anti-age / prevence','Prevence stárnutí')
+         .replace('Pevnost / liftingový efekt','Pevnost')
+         .replace('Rozjasnění / jas','Rozjasnění')
+         .replace('Nastavení domácí rutiny','Domácí rutina');
+}
+function routineHtml(title,icon,items){
+ let arr=items||[];
+ if(!arr.length)return`<div class="planRoutine"><h3>${icon} ${title}</h3><p class="muted">Bez zvláštního doporučení.</p></div>`;
+ return `<div class="planRoutine"><h3>${icon} ${title}</h3>`+
+   arr.map((p,i)=>`<div class="planStep"><b>${i+1}. ${esc(p)}</b><span class="muted">${i===0?'Použijte jako první krok péče.':'Použijte v uvedeném pořadí.'}</span></div>`).join('')+
+   `</div>`;
+}
+function buildClientPlan(c,v){
+ let goals=(v.goals||[]).map(shortGoalName);
+ let mainGoals=goals.slice(0,4);
+ let samples=(v.samples||[]);
+ let next=(v.nextTreatment||'').trim();
+ let interval=(v.nextInterval||'').trim();
+
+ let goalText=mainGoals.length?mainGoals.join(' • '):'Individuální péče podle aktuálního stavu pleti';
+
+ let message = v.homeNote?.trim() || (
+   (v.diagnosis||'').trim()
+   ? 'Domácí péči nastavujeme tak, aby navazovala na dnešní ošetření a podpořila jeho efekt.'
+   : 'Doporučení vychází z dnešního stavu pleti a průběhu ošetření.'
+ );
+
+ return `
+ <div class="clientPlanHero">
+   <h2>Váš Skin Fitness Plan</h2>
+   <div class="clientPlanMeta"><b>${esc(c.name)}</b> &nbsp;•&nbsp; ${esc(fmtDate(v.date))} &nbsp;•&nbsp; ${esc(v.therapist||c.therapist||'Le Fler')}</div>
+ </div>
+
+ <p class="planLead">Děkujeme za dnešní návštěvu. Tento plán vychází z posledního ošetření a doporučení vaší kosmetičky.</p>
+
+ <div class="planGoalBox">
+   <b>Na čem teď společně pracujeme</b>
+   <div style="font-size:20px;margin-top:6px">${esc(goalText)}</div>
+   ${v.diagnosis?`<div class="muted" style="margin-top:8px">${nl(v.diagnosis)}</div>`:''}
+ </div>
+
+ <div class="planColumns">
+   ${routineHtml('RÁNO','☀️',v.homeMorning)}
+   ${routineHtml('VEČER','🌙',v.homeEvening)}
+ </div>
+
+ <div class="planRoutine" style="margin-top:16px">
+   <h3>1–2× TÝDNĚ</h3>
+   ${(v.homeWeekly||[]).length ? (v.homeWeekly||[]).map((p,i)=>`<div class="planStep"><b>${esc(p)}</b><span class="muted">Používejte podle doporučení kosmetičky.</span></div>`).join('') : '<p class="muted">Bez pravidelného týdenního kroku.</p>'}
+ </div>
+
+ <div class="planNote">
+   <h3>Doporučení vaší kosmetičky</h3>
+   <p>${nl(message)}</p>
+ </div>
+
+ <div class="planNext">
+   <h3>Co dál</h3>
+   ${next?`<p><b>Doporučené další ošetření:</b> ${esc(next)}</p>`:''}
+   ${interval?`<p><b>Ideální interval:</b> ${esc(interval)}</p>`:''}
+   ${goals.length?`<p><b>Příště zkontrolujeme:</b> ${esc(goals.slice(0,3).join(' • '))}</p>`:''}
+   ${samples.length?`<p><b>Vzorky, které jste si odnesla:</b> ${esc(samples.join(', '))}</p>`:''}
+ </div>
+
+ <div class="planMarketing">
+   <h3>A ještě něco z Le Fler</h3>
+   <p>Byla jste u nás spokojená? Budeme rádi za krátkou recenzi. Pomůže nám i dalším klientkám při výběru péče.</p>
+   <p class="muted">Aktuální akce nebo novinku salonu můžeme do tohoto místa doplnit před odesláním PDF.</p>
+ </div>
+
+ <div class="planFooter">
+   <b>Le Fler Body & Soul</b><br>Pštrossova 29, Praha 1
+ </div>`;
+}
+let currentPlanVisitId=null;
+function openClientPlan(visitId=null){
+ let c=cur(); if(!c)return;
+ let v=visitId?visitById(c,visitId):latestVisit(c);
+ if(!v){alert('Klientka zatím nemá uloženou návštěvu, ze které by šel plán vytvořit.');return}
+ currentPlanVisitId=v.id;
+ $('clientPlanContent').innerHTML=buildClientPlan(c,v);
+ go('clientPlan');
+}
+function printClientPlan(){
+ let c=cur(); if(!c)return;
+ let v=visitById(c,currentPlanVisitId)||latestVisit(c);
+ if(!v)return;
+ $('printContent').innerHTML=buildClientPlan(c,v);
+ go('printScreen');
+ setTimeout(()=>{window.print();go('clientPlan')},200);
+}
+
+function photoChanged(input,key){
+ let f=input.files?.[0];if(!f)return;let reader=new FileReader();
+ reader.onload=e=>{let img=new Image();img.onload=()=>{let max=1000,scale=Math.min(1,max/Math.max(img.width,img.height)),cv=document.createElement('canvas');cv.width=Math.round(img.width*scale);cv.height=Math.round(img.height*scale);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);let data=cv.toDataURL('image/jpeg',.7);tempPhotos[key]=data;let target=$(key+'Img');target.src=data;target.classList.remove('hidden')};img.src=e.target.result};reader.readAsDataURL(f)
+}
+function printClient(){
+ let c=cur();
+ if(!c) return;
+ let q=c.consultation||{}, vis=[...(c.visits||[])].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+ let html=`<div class="card"><h2>Le Fler – Klientská karta</h2><p><b>Klientka:</b> ${esc(c.name)}<br><b>Datum narození:</b> ${esc(c.birth||'—')}<br><b>Telefon:</b> ${esc(c.phone||'—')}<br><b>E-mail:</b> ${esc(c.email||'—')}<br><b>Terapeutka:</b> ${esc(c.therapist||'—')}</p></div>
+ <div class="card"><h2>Konzultace</h2>
+ <p><b>Cíle / potíže:</b> ${esc((q.goals||[]).join(', ')||'—')}<br>${nl(q.goalNote||'')}</p>
+ <p><b>Zdravotní stav:</b> ${nl(q.health||'—')}<br><b>Léky / doplňky:</b> ${nl(q.meds||'—')}</p>
+ <p><b>Implantáty:</b> ${esc((q.implants||[]).join(', ')||'—')} ${nl(q.implantNote||'')}</p>
+ <p><b>Alergie:</b> ${esc((q.allergies||[]).join(', ')||'—')} ${nl(q.allergyNote||'')}</p>
+ <p><b>Současné produkty:</b> ${esc((q.currentProducts||[]).join(', ')||'—')} ${nl(q.otherProducts||'')}</p>
+ <p><b>Domácí rutina:</b> ${nl(q.routine||'—')}</p>
+ <p><b>Nedávný peeling / botox / výplně:</b> ${esc(q.recent||'—')} ${esc(q.recentDate||'')} ${nl(q.recentNote||'')}</p>
+ <p><b>Těhotná:</b> ${q.preg?'Ano':'Ne'} &nbsp; <b>Kojí:</b> ${q.breast?'Ano':'Ne'}<br><b>Opary:</b> ${esc(q.herpes||'—')} ${nl(q.herpesNote||'')}<br><b>Citlivost:</b> ${esc(q.sensitive||'—')} ${nl(q.sensitiveNote||'')}</p></div>`;
+ vis.forEach((v,i)=>{html+=`<div class="card ${i?'print-break':''}"><h2>Návštěva ${esc(v.date||'')} – ${esc(v.treatment||'')}</h2>
+ <p><b>Terapeutka:</b> ${esc(v.therapist||'—')}<br><b>Cíle / stav:</b> ${esc((v.goals||[]).join(', ')||'—')}</p>
+ <p><b>Diagnostika:</b> ${nl(v.diagnosis||'—')}</p><p><b>Techniky / přístroje:</b> ${esc((v.techniques||[]).join(', ')||'—')} ${nl(v.techniqueNote||'')}</p>
+ <p><b>Použité produkty:</b> ${esc((v.products||[]).join(', ')||'—')} ${nl(v.productNote||'')}</p><p><b>Aktivní látky:</b> ${esc((v.actives||[]).join(', ')||'—')}</p>
+ <p><b>Reakce pleti:</b> ${esc((v.reactions||[]).join(', ')||'—')} ${nl(v.reactionNote||'')}</p>
+ <p><b>Doporučení na doma:</b><br>Ráno: ${esc((v.homeMorning||[]).join(', ')||'—')}<br>Večer: ${esc((v.homeEvening||[]).join(', ')||'—')}<br>1–2× týdně: ${esc((v.homeWeekly||[]).join(', ')||'—')}<br>${nl(v.homeNote||'')}</p>
+ <p><b>Další doporučený krok:</b> ${esc(v.nextTreatment||'—')} / ${esc(v.nextInterval||'—')}<br><b>Objednána na místě:</b> ${v.booked?'Ano':'Ne'}<br><b>Vzorky:</b> ${esc((v.samples||[]).join(', ')||'—')}</p>
+ ${printPhotos(v.photos)}</div>`});
+ $('printContent').innerHTML=html;go('printScreen');setTimeout(()=>{window.print();openHistory()},200)
+}
+function printPhotos(p){
+ if(!p)return'';let items=[['Před – čelní','beforeFront'],['Po – čelní','afterFront'],['Před – detail','beforeDetail'],['Po – detail','afterDetail']].filter(x=>p[x[1]]);
+ if(!items.length)return'';return '<h3>Fotodokumentace</h3><div class="photoGrid">'+items.map(x=>`<div><b>${x[0]}</b><br><img style="max-width:180px;max-height:180px" src="${p[x[1]]}"></div>`).join('')+'</div>'
+}
+function exportJson(){let a=document.createElement('a'),blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});a.href=URL.createObjectURL(blob);a.download='le_fler_klientska_karta_v3_export.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function resetDemo(){
+  if(!confirm('Obnovit testovací databázi? Současná testovací data v této V3 budou přepsána.')) return;
+  DB=JSON.parse(JSON.stringify(DEMO_DB));
+  localStorage.setItem(STORE,JSON.stringify(DB));
+  currentId=null;
+  enableButtons(false);
+  renderClients();
+  go('clients');
+  msg('Načteny 3 testovací klientky.');
+}
+setup();enableButtons(false);
+</script>
+</body>
+</html>
